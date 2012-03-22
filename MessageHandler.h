@@ -28,12 +28,11 @@ public:
     int recvCode() const throw(ConnectionClosedException);
     int recvInt() const throw(ConnectionClosedException);
     int recvIntParameter() const throw(ConnectionClosedException);
-    string recvStringParamter() const throw(ConnectionClosedException);
+    string recvStringParameter() const throw(ConnectionClosedException);
 
 private:
     void sendByte(int code) const throw(ConnectionClosedException);
     int recvByte() const throw(ConnectionClosedException);
-    void error(const char *msg) const;
 
     Connection *connection;
 };

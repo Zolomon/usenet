@@ -1,6 +1,8 @@
 #include "MessageHandler.h"
 #include "protocol.h"
 #include <iostream>
+#include <string>
+#include <sstream>
 
 using namespace protocol;
 using namespace std;
@@ -61,8 +63,49 @@ const throw(ConnectionClosedException)
     return code;
 }
 
-void MessageHandler::error(const char *msg) const
+int MessageHandler::recvInt()
+const throw(ConnectionClosedException)
 {
-    cerr << "MessageHandler: " << msg << endl;
+    int b1 = recvByte();
+    int b2 = recvByte();
+    int b3 = recvByte();
+    int b4 = recvByte();
+
+    return b1 << 24 | b2 << 16 | b3 << 8 | b4;
 }
+
+int MessageHandler::recvIntParameter()
+const throw(ConnectionClosedException)
+{
+    int code = recvCode();
+    if (code != Protocol::PAR_NUM)
+    {
+        throw ConnectionClosedException();
+    }
+    return recvInt();
+}
+
+string MessageHandler::recvStringParameter()
+const throw(ConnectionClosedException)
+{
+    int code = recvCode();
+    if (code != Protocol::PAR_STRING)
+    {
+        throw ConnectionClosedException();
+    }
+    int n = recvInt();
+    if (n < 0)
+    {
+        throw ConnectionClosedException();
+    }
+    stringstream ss;
+    for (int i = 0; i != n; ++i)
+    {
+        unsigned char readChar = connection->read();
+        ss << readChar;
+    }
+    string result = ss.str();
+    return result;
+}
+
 }
