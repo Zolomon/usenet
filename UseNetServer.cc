@@ -17,7 +17,7 @@ using protocol::Protocol;
 
 int main(int argc, const char *argv[])
 {
-    if (argc > 3)
+    if (argc > 3 || argc == 1)
     {
         cerr << "Usage: UseNetServer port [-m|-db]" << endl;
         cerr << "-m  = RAM storage [default]" << endl;
@@ -51,11 +51,6 @@ int main(int argc, const char *argv[])
         db = new DatabaseRAM();
     }
 
-    if (db == 0) {
-        cerr << "Something went wrong, database not connected." << endl;
-        exit(1);
-    }
-
     Server server(atoi(argv[1]));
     if (!server.isReady())
     {
@@ -71,29 +66,37 @@ int main(int argc, const char *argv[])
             try
             {
                 MessageHandler mh(conn);
-
-                int code = mh.recvCode();
-                cout << "Code: " << code << endl;
-                switch (code)
+                while (conn->isConnected())
                 {
-                case Protocol::COM_LIST_NG:
-                    cout << "Inside switch" << endl;
-                    db->ListNewsGroups(mh);
-                    break;
-                case Protocol::COM_CREATE_NG:
-                    break;
-                case Protocol::COM_DELETE_NG:
-                    break;
-                case Protocol::COM_LIST_ART:
-                    break;
-                case Protocol::COM_CREATE_ART:
-                    break;
-                case Protocol::COM_DELETE_ART:
-                    break;
-                case Protocol::COM_GET_ART:
-                    break;
-                default:
-                    break;
+                    int code = mh.recvCode();
+                    switch (code)
+                    {
+                    case Protocol::COM_LIST_NG:
+                        db->ListNewsGroups(mh);
+                        break;
+                    case Protocol::COM_CREATE_NG:
+                        db->CreateNewsGroup(mh);
+                        break;
+                    case Protocol::COM_DELETE_NG:
+                        db->DeleteNewsGroup(mh);
+                        break;
+                    case Protocol::COM_LIST_ART:
+                        db->ListArticles(mh);
+                        break;
+                    case Protocol::COM_CREATE_ART:
+                        db->CreateArticle(mh);
+                        break;
+                    case Protocol::COM_DELETE_ART:
+                        db->DeleteArticle(mh);
+                        break;
+                    case Protocol::COM_GET_ART:
+                        db->GetArticle(mh);
+                        break;
+                    default:
+                        cerr << "Unexpected command" << endl;
+                        exit(1);
+                        break;
+                    }
                 }
             }
             catch (ConnectionClosedException &)
