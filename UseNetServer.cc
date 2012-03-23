@@ -2,7 +2,11 @@
 #include "server.h"
 #include "connection.h"
 #include "MessageHandler.h"
+#include "IDatabase.h"
+#include "DatabaseRAM.h"
+#include "DatabaseDB.h"
 #include "protocol.h"
+
 #include <iostream>
 #include <string>
 
@@ -11,26 +15,44 @@ using namespace client_server;
 using namespace usenet;
 using protocol::Protocol;
 
-void ListNewsGroups(const MessageHandler &mh)
-{
-    int code = mh.recvCode();
-    cout << "recvCode: " << code << endl;
-    if (code != Protocol::COM_END)
-        cerr << "Malformed command...";
-
-    cout << "Listing all NewsGroups..." << endl;
-    mh.sendCode(Protocol::ANS_LIST_NG);
-    mh.sendIntParameter(1);
-    mh.sendIntParameter(25);
-    mh.sendStringParameter("string param");
-    mh.sendCode(Protocol::ANS_END);
-}
-
 int main(int argc, const char *argv[])
 {
-    if (argc != 2)
+    if (argc > 3)
     {
-        cerr << "Usage: UseNetServer[ MEM | DB ] port" << endl;
+        cerr << "Usage: UseNetServer port [-m|-db]" << endl;
+        cerr << "-m  = RAM storage [default]" << endl;
+        cerr << "-db = SQLite3 storage" << endl;
+        exit(1);
+    }
+
+    IDatabase *db = 0;
+    if (argc == 3)
+    {
+        string dbOption = argv[2];
+        if (dbOption == "-m" )
+        {
+            db = new DatabaseRAM();
+        }
+        else if (dbOption == "-db")
+        {
+            db = new DatabaseDB();
+        }
+        else
+        {
+            cerr << "Usage: UseNetServer port [-m|-db]" << endl;
+            cerr << "-m  = RAM storage [default]" << endl;
+            cerr << "-db = SQLite3 storage" << endl;
+            exit(1);
+        }
+    }
+    else
+    {
+        // Default option
+        db = new DatabaseRAM();
+    }
+
+    if (db == 0) {
+        cerr << "Something went wrong, database not connected." << endl;
         exit(1);
     }
 
@@ -56,7 +78,7 @@ int main(int argc, const char *argv[])
                 {
                 case Protocol::COM_LIST_NG:
                     cout << "Inside switch" << endl;
-                         ListNewsGroups(mh);
+                    db->ListNewsGroups(mh);
                     break;
                 case Protocol::COM_CREATE_NG:
                     break;

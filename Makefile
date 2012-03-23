@@ -25,8 +25,8 @@ PROGS		= usenetserver
 
 all: libclientserver.a memserver
 
-memserver: libclientserver.a UseNetServer.o MessageHandler.o
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(LDLIBS) UseNetServer.cc MessageHandler.cc
+memserver: libclientserver.a UseNetServer.o MessageHandler.o DatabaseDB.o DatabaseRAM.o
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(LDLIBS) UseNetServer.cc MessageHandler.cc DatabaseDB.cc DatabaseRAM.cc
 
 # Create the library; ranlib is for Darwin and maybe other systems.
 # Doesn't seem to do any damage on other systems.

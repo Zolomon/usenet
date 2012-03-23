@@ -108,4 +108,8 @@ const throw(ConnectionClosedException)
     return result;
 }
 
+void MessageHandler::TOREMOVE(string msg) {
+    cout << msg << endl;
+}
+
 }

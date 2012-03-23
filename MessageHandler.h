@@ -30,6 +30,8 @@ public:
     int recvIntParameter() const throw(ConnectionClosedException);
     string recvStringParameter() const throw(ConnectionClosedException);
 
+    // TODO: Remove this shite, it's just here for Clang.
+    void TOREMOVE(string msg);
 private:
     void sendByte(int code) const throw(ConnectionClosedException);
     int recvByte() const throw(ConnectionClosedException);
