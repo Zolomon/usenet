@@ -12,15 +12,15 @@ public:
 	typedef map<int, NewsGroup> MapNewsGroup;
 	typedef map<int, Article> MapArticle;
 
-	DatabaseRAM() { ID = 0; }
+	DatabaseRAM() { newsgroups = new MapNewsGroup(); deletedGroups = 0;}
 
-	MapNewsGroup ListNewsGroups();
+	MapNewsGroup* ListNewsGroups();
 	bool CreateNewsGroup(string title);
 	bool DeleteNewsGroup(int ngID);
 	bool NewsGroupExists(int ngID);
 	size_t NonDeletedNewsGroupCount(); 
 
-	MapArticle ListArticles(int ngID);
+	MapArticle* ListArticles(int ngID);
 	bool CreateArticle(int ngID, string title, string author, string text);
 	bool DeleteArticle(int ngID, int aID);
 	Article const * GetArticle(int ngID, int aID);
@@ -29,10 +29,11 @@ public:
 
 private:
 	bool FindNewsGroup(string name) const;
-	MapNewsGroup newsgroups;
-	static int ID;
+	MapNewsGroup* newsgroups;
+	static int ID; // TODO: FULHACK, FIXA
 	size_t deletedGroups;
 };
+
 struct FindNewsGroupByName : public binary_function<NewsGroup, string, bool>
 {
 	bool operator() (const NewsGroup &newsgroup, string name) const

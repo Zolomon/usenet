@@ -20,9 +20,10 @@ class NewsGroup
 public:
     typedef map<int, Article> MapArticle;
 
-    NewsGroup(string name) : name(name), isDeleted(false) { articleID = 0; }
+ NewsGroup(string name) : name(name), isDeleted(false) 
+      { articleID = 0; articles = new MapArticle(); deletedArticles = 0;}
 
-    MapArticle ListArticles();
+    MapArticle* ListArticles();
     void CreateArticle(string title, string author, string text);
     bool DeleteArticle(int aID);
     Article const * GetArticle(int aID);
@@ -40,7 +41,7 @@ private:
     string name;
     bool isDeleted;
     size_t deletedArticles;
-    map<int, Article> articles;
+    MapArticle* articles;
     static int articleID;
 };
 

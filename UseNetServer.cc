@@ -30,12 +30,15 @@ void HandleListNewsGroups(MessageHandler &mh, IDatabase *db)
     cout << "Listing all NewsGroups..." << endl;
     mh.sendCode(Protocol::ANS_LIST_NG);
 
-    MapNewsGroup ng = db->ListNewsGroups();
+    MapNewsGroup* ng = db->ListNewsGroups();
+    if (ng == 0) cout << "Could not fetch newsgroup..." << endl;
+    cout << "NG size: " << ng->size() << endl;
+    cout << ng->size() << " " << db->NonDeletedNewsGroupCount() << endl;
     mh.sendIntParameter(db->NonDeletedNewsGroupCount());
 
     MapNewsGroup::iterator it;
 
-    for (it = ng.begin(); it != ng.end(); ++it) {
+    for (it = ng->begin(); it != ng->end(); ++it) {
         if (!it->second.IsDeleted()) {
             mh.sendIntParameter(it->first);
             mh.sendStringParameter(it->second.GetName());
@@ -43,6 +46,8 @@ void HandleListNewsGroups(MessageHandler &mh, IDatabase *db)
     }
 
     mh.sendCode(Protocol::ANS_END);
+
+    //delete ng;
 }
 
 void HandleCreateNewsGroup(MessageHandler &mh, IDatabase *db)
@@ -110,20 +115,22 @@ void HandleListArticles(MessageHandler &mh, IDatabase *db)
 
     if (db->NewsGroupExists(ngID))
     {
-        MapArticle result = db->ListArticles(ngID);
+        MapArticle* result = db->ListArticles(ngID);
         
         mh.sendCode(Protocol::ANS_ACK);
         mh.sendIntParameter(db->NonDeletedArticleCount(ngID));
 
-	   cout << "Article["<<ngID<<"].Count: " << db->NonDeletedArticleCount(ngID) << endl;
+	cout << "Article["<<ngID<<"].Count: " << db->NonDeletedArticleCount(ngID) << endl;
         MapArticle::iterator it;
 
-        for (it = result.begin(); it != result.end(); ++it) {
+        for (it = result->begin(); it != result->end(); ++it) {
             if (!it->second.IsDeleted()) {
                 mh.sendIntParameter(it->first + 1);
                 mh.sendStringParameter(it->second.GetTitle());
             }
         }
+
+	//delete result;
     }
     else
     {
@@ -249,8 +256,13 @@ void HandleGetArticle(MessageHandler &mh, IDatabase *db)
     mh.sendCode(Protocol::ANS_END);
 }
 
+  int DatabaseRAM::ID = 0;
+  int NewsGroup::articleID;
+
 int main(int argc, const char *argv[])
 {
+
+  
     if (argc > 3 || argc == 1)
     {
         cerr << "Usage: UseNetServer port [-m|-db]" << endl;
