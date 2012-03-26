@@ -22,7 +22,7 @@ bool NewsGroup::DeleteArticle(int aID)
     return articles[aID].IsDeleted();
 }
 
-Article const *const NewsGroup::GetArticle(int aID)
+Article * NewsGroup::GetArticle(int aID)
 {
     Article *result = 0;
     if (ArticleExists(aID))

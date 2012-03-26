@@ -24,7 +24,7 @@ public:
     virtual vector<Article> 		ListArticles(int ngID) = 0;
     virtual bool 					CreateArticle(int ngID, string title, string author, string text) = 0;
     virtual bool 					DeleteArticle(int ngID, int aID) = 0;
-    virtual Article const * const 	GetArticle(int ngID, int aID) = 0;
+    virtual Article * 			 	GetArticle(int ngID, int aID) = 0;
     virtual bool 					ArticleExists(int ngID, int aID) = 0;
     virtual size_t 					ArticleCount(int ngID) = 0;
 };

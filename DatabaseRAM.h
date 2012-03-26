@@ -17,7 +17,7 @@ public:
 	vector<Article>				ListArticles(int ngID);
 	bool						CreateArticle(int ngID, string title, string author, string text);
 	bool						DeleteArticle(int ngID, int aID);
-	Article const *const		GetArticle(int ngID, int aID);
+	Article * 					GetArticle(int ngID, int aID);
 	bool 						ArticleExists(int ngID, int aID);
 	size_t 						NewsGroupCount() { return newsgroups.size()-deletedGroups; }
 	size_t 						ArticleCount(int ngID) { return newsgroups[static_cast<vector<Article>::size_type>(ngID)].ArticleCount(); }

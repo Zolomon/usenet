@@ -96,13 +96,13 @@ bool DatabaseRAM::DeleteArticle(int ngID, int aID)
 
     return result;
 }
-Article const *const DatabaseRAM::GetArticle(int ngID, int aID)
+Article *  DatabaseRAM::GetArticle(int ngID, int aID)
 {
     if (NewsGroupExists(ngID))
     {
         if (newsgroups[static_cast<vector<NewsGroup>::size_type>(ngID)].ArticleExists(aID))
         {
-            Article const *const article = newsgroups[static_cast<vector<NewsGroup>::size_type>(ngID)].GetArticle(aID);
+            Article * article = newsgroups[static_cast<vector<NewsGroup>::size_type>(ngID)].GetArticle(aID);
             cout << "NewsGroup[" << ngID << "].Article[" << aID << "]" << endl
                  << "\tTitle:\t\t" << article->GetTitle() << endl
                  << "\tAuthor:\t\t" << article->GetAuthor() << endl;
