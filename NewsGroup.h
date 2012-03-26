@@ -23,7 +23,7 @@ public:
     vector<Article>                 ListArticles();
     void                            CreateArticle(string title, string author, string text);
     bool                            DeleteArticle(int aID);
-    Article const *const            GetArticle(int aID);
+    Article *                       GetArticle(int aID);
     bool                            ArticleExists(int aID);
     bool                            FindArticle(string title) const;
     size_t                          ArticleCount() {return articles.size() - deletedArticles;}
