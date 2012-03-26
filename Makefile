@@ -23,10 +23,13 @@ PROGS		= usenetserver
 
 .PHONY: all clean cleaner
 
-all: libclientserver.a memserver
+all: libclientserver.a memserver client
 
 memserver: libclientserver.a UseNetServer.o MessageHandler.o DatabaseRAM.o Article.o NewsGroup.o server.o
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(LDLIBS) UseNetServer.cc MessageHandler.cc DatabaseRAM.cc Article.cc NewsGroup.cc server.cc connection.cc
+
+client: UseNetClient.o MessageHandler.o protocol.h connection.o
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(LDLIBS) -o client UseNetClient.cc MessageHandler.cc connection.cc
 
 # Create the library; ranlib is for Darwin and maybe other systems.
 # Doesn't seem to do any damage on other systems.
