@@ -14,24 +14,26 @@ void NewsGroup::CreateArticle(string title, string author, string text)
 bool NewsGroup::DeleteArticle(int aID)
 {
     vector<Article>::size_type idx = static_cast<vector<Article>::size_type>(aID);
-    if (idx > articles.size() || idx == 0)
-        return false;
-
-    if (articles[idx].isDeleted)
+    if (idx > articles.size() || idx == 0 || !ArticleExists(aID))
         return false;
 
     articles[aID].Delete();
-    return articles[aID].isDeleted;
+    deletedArticles++;
+    return articles[aID].IsDeleted();
 }
 
 Article const *const NewsGroup::GetArticle(int aID)
 {
     Article *result = 0;
-    vector<Article>::size_type idx = static_cast<vector<Article>::size_type>(aID);
-    if (idx < articles.size())
-        result = &articles[idx];
+    if (ArticleExists(aID))
+        result = &articles[static_cast<vector<Article>::size_type>(aID)];
 
     return result;
+}
+
+bool NewsGroup::ArticleExists(int aID) {
+    return  static_cast<vector<Article>::size_type>(aID) < articles.size() &&
+            !articles[static_cast<vector<Article>::size_type>(aID)].IsDeleted();
 }
 
 bool NewsGroup::FindArticle(string title) const {

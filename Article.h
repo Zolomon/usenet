@@ -30,6 +30,9 @@ public:
     {
         isDeleted = true;
     }
+    bool IsDeleted() {
+        return isDeleted;
+    }
 
 private:
     string title;

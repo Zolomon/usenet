@@ -5,10 +5,13 @@
 #include <string>
 #include "Article.h"
 #include <functional>
+#include <iostream>
 
 using std::binary_function;
 using std::vector;
 using std::string;
+using std::cout;
+using std::endl;
 
 namespace usenet
 {
@@ -17,37 +20,35 @@ class NewsGroup
 public:
     NewsGroup(string name) : name(name), isDeleted(false) {}
 
-    vector<Article> ListArticles();
-    void CreateArticle(string title, string author, string text);
-    bool DeleteArticle(int aID);
-    Article const *const GetArticle(int aID);
-    bool FindArticle(string title) const;
-    void Delete()
-    {
-        isDeleted = true;
-    }
-    bool IsDeleted() const
-    {
-        return isDeleted;
-    }
-    string GetName() const
-    {
-        return name;
-    }
+    vector<Article>                 ListArticles();
+    void                            CreateArticle(string title, string author, string text);
+    bool                            DeleteArticle(int aID);
+    Article const *const            GetArticle(int aID);
+    bool                            ArticleExists(int aID);
+    bool                            FindArticle(string title) const;
+    size_t                          ArticleCount() {return articles.size() - deletedArticles;}
 
-    vector<Article>::size_type Size();
+    void                            Delete() { isDeleted = true; }
+    bool                            IsDeleted() const { return isDeleted; }
+    string                          GetName() const { return name; }
+
+    vector<Article>::size_type      Size();
 private:
     friend class DatabaseRAM;
-    string name;
-    bool isDeleted;
-    vector<Article> articles;
+    string                          name;
+    bool                            isDeleted;
+    size_t                          deletedArticles;
+    vector<Article>                 articles;
 };
 
 struct FindArticleByName : public binary_function<Article, string, bool>
 {
     bool operator() (const Article &article, string title) const
     {
-        return title == article.GetTitle();
+        bool found = title == article.GetTitle();
+        if (found) cout << "Found article! T: " << title  << endl;
+        else cout << "Couldn't find Article! T: " << title << endl;
+        return found;
     }
 };
 }
