@@ -1,4 +1,6 @@
 #include "NewsGroup.h"
+#include <algorithm>
+
 namespace usenet
 {
 vector<Article> NewsGroup::ListArticles()
