@@ -1,48 +1,47 @@
 #ifndef NEWSGROUP_H
 #define NEWSGROUP_H
 
-#include <vector>
 #include <string>
 #include "Article.h"
 #include <functional>
 #include <iostream>
+#include <map>
 
 using std::binary_function;
-using std::vector;
 using std::string;
 using std::cout;
 using std::endl;
+using std::map;
 
 namespace usenet
 {
 class NewsGroup
 {
 public:
-    NewsGroup(string name) : name(name), isDeleted(false) {}
+    typedef map<int, Article> MapArticle;
 
-    vector<Article> ListArticles();
+    NewsGroup(string name) : name(name), isDeleted(false) { articleID = 0; }
+
+    MapArticle ListArticles();
     void CreateArticle(string title, string author, string text);
     bool DeleteArticle(int aID);
     Article const * GetArticle(int aID);
     bool ArticleExists(int aID);
     bool FindArticle(string title) const;
-    size_t ArticleCount() 
-    {
-      cout << "Article.("<< deletedArticles << ") Size()" << endl; 
-      return articles.size() - deletedArticles;
-    }
+    size_t NonDeletedArticleCount();
 
     void Delete() { isDeleted = true; }
     bool IsDeleted() const { return isDeleted; }
     string GetName() const { return name; }
 
-    vector<Article>::size_type Size();
+    MapArticle::size_type Size();
 private:
     friend class DatabaseRAM;
     string name;
     bool isDeleted;
     size_t deletedArticles;
-    vector<Article> articles;
+    map<int, Article> articles;
+    static int articleID;
 };
 
 struct FindArticleByName : public binary_function<Article, string, bool>

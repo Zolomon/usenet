@@ -9,22 +9,28 @@ namespace usenet
 class DatabaseRAM : public IDatabase
 {
 public:
-	vector<NewsGroup> ListNewsGroups();
-	bool CreateNewsGroup(string title);
-	void DeleteNewsGroup(int ngID);
-	bool NewsGroupExists(int ngID);
+	typedef map<int, NewsGroup> MapNewsGroup;
+	typedef map<int, Article> MapArticle;
 
-	vector<Article>	ListArticles(int ngID);
+	DatabaseRAM() { ID = 0; }
+
+	MapNewsGroup ListNewsGroups();
+	bool CreateNewsGroup(string title);
+	bool DeleteNewsGroup(int ngID);
+	bool NewsGroupExists(int ngID);
+	size_t NonDeletedNewsGroupCount(); 
+
+	MapArticle ListArticles(int ngID);
 	bool CreateArticle(int ngID, string title, string author, string text);
 	bool DeleteArticle(int ngID, int aID);
 	Article const * GetArticle(int ngID, int aID);
 	bool ArticleExists(int ngID, int aID);
-	size_t NewsGroupCount() { return newsgroups.size()-deletedGroups; }
-	size_t ArticleCount(int ngID); 
-	
+	size_t NonDeletedArticleCount(int ngID);
+
 private:
 	bool FindNewsGroup(string name) const;
-	vector<NewsGroup> newsgroups;
+	MapNewsGroup newsgroups;
+	static int ID;
 	size_t deletedGroups;
 };
 struct FindNewsGroupByName : public binary_function<NewsGroup, string, bool>

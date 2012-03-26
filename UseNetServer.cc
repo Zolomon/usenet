@@ -16,6 +16,9 @@ using namespace client_server;
 using namespace usenet;
 using protocol::Protocol;
 
+typedef map<int, Article> MapArticle;
+typedef map<int, NewsGroup> MapNewsGroup;
+
 void HandleListNewsGroups(MessageHandler &mh, IDatabase *db)
 {
     int cmdEnd = mh.recvCode();
@@ -27,14 +30,15 @@ void HandleListNewsGroups(MessageHandler &mh, IDatabase *db)
     cout << "Listing all NewsGroups..." << endl;
     mh.sendCode(Protocol::ANS_LIST_NG);
 
-    vector<NewsGroup> ng = db->ListNewsGroups();
-    mh.sendIntParameter(db->NewsGroupCount());
-    for (std::vector<NewsGroup>::size_type i = 0; i != ng.size(); ++i)
-    {
-        if (!ng[i].IsDeleted())
-        {
-            mh.sendIntParameter(i);
-            mh.sendStringParameter(ng[i].GetName());
+    MapNewsGroup ng = db->ListNewsGroups();
+    mh.sendIntParameter(db->NonDeletedNewsGroupCount());
+
+    MapNewsGroup::iterator it;
+
+    for (it = ng.begin(); it != ng.end(); ++it) {
+        if (!it->second.IsDeleted()) {
+            mh.sendIntParameter(it->first);
+            mh.sendStringParameter(it->second.GetName());
         }
     }
 
@@ -106,16 +110,18 @@ void HandleListArticles(MessageHandler &mh, IDatabase *db)
 
     if (db->NewsGroupExists(ngID))
     {
-        vector<Article> result = db->ListArticles(ngID);
+        MapArticle result = db->ListArticles(ngID);
+        
         mh.sendCode(Protocol::ANS_ACK);
-        mh.sendIntParameter(db->ArticleCount(ngID));
-	cout << "Article["<<ngID<<"].Count: " << db->ArticleCount(ngID) << endl;
-        for (vector<Article>::size_type i = 0; i != result.size(); ++i)
-        {
-            if (!result[i].IsDeleted())
-            {
-                mh.sendIntParameter(static_cast<int>(i) + 1);
-                mh.sendStringParameter(result[i].GetTitle());
+        mh.sendIntParameter(db->NonDeletedArticleCount(ngID));
+
+	   cout << "Article["<<ngID<<"].Count: " << db->NonDeletedArticleCount(ngID) << endl;
+        MapArticle::iterator it;
+
+        for (it = result.begin(); it != result.end(); ++it) {
+            if (!it->second.IsDeleted()) {
+                mh.sendIntParameter(it->first + 1);
+                mh.sendStringParameter(it->second.GetTitle());
             }
         }
     }
@@ -172,7 +178,7 @@ void HandleDeleteArticle(MessageHandler &mh, IDatabase *db)
     if (db->NewsGroupExists(ngID))
     {
         cout << "\tNewsGroup exists ..." << endl;
-        cout << "\tArticle Count: " << db->ArticleCount(ngID) << endl;
+        cout << "\tArticle Count: " << db->NonDeletedArticleCount(ngID) << endl;
 
         //cout << "Article["<<ngID<<"]["<<aID<<"]: " << db->GetArticle(ngID, aID)->GetTitle() << endl;
 

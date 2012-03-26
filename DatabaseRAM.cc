@@ -3,30 +3,25 @@
 #include <iostream>
 #include <algorithm>
 #include "protocol.h"
+#include <utility>
 
 using std::cout;
 using std::endl;
 using std::cerr;
 using protocol::Protocol;
+using std::make_pair;
 
 namespace usenet
 {
-  vector<NewsGroup> DatabaseRAM::ListNewsGroups()
-  {
-    // vector<NewsGroup> ng;
+typedef map<int, NewsGroup> MapNewsGroup;
+typedef map<int, Article> MapArticle;
 
-    // for (std::vector<NewsGroup>::size_type i = 0;
-    //         i < newsgroups.size(); ++i)
-    // {
-    //     if (!newsgroups[i].isDeleted)
-    //         ng.push_back(newsgroups[i]);
-    // }
-
-    // return ng;
+MapNewsGroup DatabaseRAM::ListNewsGroups()
+{
     return newsgroups;
-  }
-  bool DatabaseRAM::CreateNewsGroup(string name)
-  {
+}
+bool DatabaseRAM::CreateNewsGroup(string name)
+{
     // Return false if NewsGroup already exists.
     bool result = false;
 
@@ -38,119 +33,145 @@ namespace usenet
 
     // Create if not found
     NewsGroup ng(name);
-    newsgroups.push_back(name);
+    newsgroups.insert(make_pair(DatabaseRAM::ID++, ng));
 
     result = true;
     return result;
-  }
-  void DatabaseRAM::DeleteNewsGroup(int ngID)
-  {
-    if (NewsGroupExists(ngID) && !newsgroups[ngID].IsDeleted()) {
-      cout << "Deleting NewsGroup[" << ngID << "]" << endl;
-      newsgroups[ngID].Delete();
-      deletedGroups++;
-      if (deletedGroups >= newsgroups.size()) 
-	cout << "newsgroups.size("<<newsgroups.size()<<") && deletedGroups = " << deletedGroups << endl;
+}
+bool DatabaseRAM::DeleteNewsGroup(int ngID)
+{
+    MapNewsGroup::iterator it = newsgroups.find(ngID);
+
+    if (it != newsgroups.end() && !it->second.IsDeleted())
+    {
+        cout << "Deleting NewsGroup[" << ngID << "]" << endl;
+
+        it->second.Delete();
+        deletedGroups++;
+
+        if (deletedGroups >= newsgroups.size())
+            cout << "newsgroups.size(" << newsgroups.size() << ") && deletedGroups = " << deletedGroups << endl;
+
+        return true;
     }
-  }
+    return false;
+}
 
-  bool DatabaseRAM::NewsGroupExists(int ngID)
-  {
-    return  static_cast<vector<NewsGroup>::size_type>(ngID) < newsgroups.size() &&
-      !newsgroups[static_cast<vector<NewsGroup>::size_type>(ngID)].IsDeleted();
-  }
+bool DatabaseRAM::NewsGroupExists(int ngID)
+{
+    MapNewsGroup::iterator it = newsgroups.find(ngID);
+    return it != newsgroups.end();
+}
 
-  vector<Article> DatabaseRAM::ListArticles(int ngID)
-  {
-    vector<Article> articles;
-    if (NewsGroupExists(ngID))
-      articles = newsgroups[static_cast<vector<Article>::size_type>(ngID)].ListArticles();
+MapArticle DatabaseRAM::ListArticles(int ngID)
+{
+    MapNewsGroup::iterator ngIt = newsgroups.find(ngID);
+    MapArticle articles;
+    if (ngIt != newsgroups.end()) {
+        articles = ngIt->second.ListArticles();
+    }
 
     return articles;
-  }
-  bool DatabaseRAM::CreateArticle(int ngID, string title, string author, string text)
-  {
+}
+bool DatabaseRAM::CreateArticle(int ngID, string title, string author, string text)
+{
     // Return false if article already exists.
     bool result = false;
 
-    if (NewsGroupExists(ngID))
-      {
+    MapNewsGroup::iterator it = newsgroups.find(ngID);
+
+    if (it != newsgroups.end())
+    {
         // Find article
-        bool found = newsgroups[static_cast<vector<NewsGroup>::size_type>(ngID)].FindArticle(title);
+        bool found = it->second.FindArticle(title);
 
         // Return false if found
         if (found) return false;
 
         // Create if not found
         cout << "Creating NewsGroup[" << ngID << "].Article(" << title << "," << author << "," << text << ")" << endl;
-        newsgroups[ngID].CreateArticle(title, author, text);
+        it->second.CreateArticle(title, author, text);
         result = true;
-      }
+    }
 
     return result;
-  }
-  bool DatabaseRAM::DeleteArticle(int ngID, int aID)
-  {
+}
+bool DatabaseRAM::DeleteArticle(int ngID, int aID)
+{
     bool result = false;
+    MapNewsGroup::iterator it = newsgroups.find(ngID);
 
-    if (NewsGroupExists(ngID))
-      {
-	cout << "Deleting NewsGroup["<<ngID<<"].Article["<<aID<<"]" << endl;
-	  newsgroups[static_cast<vector<NewsGroup>::size_type>(ngID)].DeleteArticle(aID-1);
+    if (it != newsgroups.end())
+    {
+        cout << "Deleting NewsGroup[" << ngID << "].Article[" << aID << "]" << endl;
+        it->second.DeleteArticle(aID - 1);
         result = true;
-      }
+    }
 
     return result;
-  }
+}
 
-  Article const * DatabaseRAM::GetArticle(int ngID, int aID)
-  {
-    if (NewsGroupExists(ngID))
-      {
-        if (newsgroups[static_cast<vector<NewsGroup>::size_type>(ngID)].ArticleExists(aID))
-	  {
-            Article const * article = newsgroups[static_cast<vector<NewsGroup>::size_type>(ngID)].GetArticle(aID);
+Article const *DatabaseRAM::GetArticle(int ngID, int aID)
+{
+    MapNewsGroup::iterator it = newsgroups.find(ngID);
+
+    if (it != newsgroups.end())
+    {
+        if (it->second.ArticleExists(aID))
+        {
+            Article const *article = it->second.GetArticle(aID);
             cout << "NewsGroup[" << ngID << "].Article[" << aID << "]" << endl
                  << "\tTitle:\t\t" << article->GetTitle() << endl
                  << "\tAuthor:\t\t" << article->GetAuthor() << endl;
-	    //<< "\tText:\t\t" << article->GetText() << endl;
+            //<< "\tText:\t\t" << article->GetText() << endl;
             return article;
-	  }
+        }
         else
-	  cerr << "Article[" << aID << "] does not exist." << endl;
-      }
+            cerr << "Article[" << aID << "] does not exist." << endl;
+    }
     else
-      {
+    {
         cerr << "NewsGroup[" << ngID << "] does not exist." << endl;
-      }
+    }
 
     // Could not find article.
     return 0;
-  }
+}
 
-  bool DatabaseRAM::ArticleExists(int ngID, int aID)
-  {
-    return NewsGroupExists(ngID) &&
-      newsgroups[static_cast<vector<NewsGroup>::size_type>(ngID)].ArticleExists(aID);
-  }
-  
-  size_t DatabaseRAM::ArticleCount(int ngID) 
-  { 
-    if (NewsGroupExists(ngID)) {
-      return newsgroups[static_cast<vector<Article>::size_type>(ngID)].ArticleCount(); 
-    } else {
-      cout << "Checking ArticleCount() for a news group that does not exist. " << endl;
-      return 0;
-    }    
-  }
+bool DatabaseRAM::ArticleExists(int ngID, int aID)
+{
+    MapNewsGroup::iterator it = newsgroups.find(ngID);
 
-  bool DatabaseRAM::FindNewsGroup(string name) const
-  {
-    vector<NewsGroup>::const_iterator it = find_if(
-						   newsgroups.begin(),
-						   newsgroups.end(),
-						   bind2nd(FindNewsGroupByName(), name));
+    if (it != newsgroups.end())
+    {
+        return it->second.ArticleExists(aID);
+    }
+    return false;
+}
 
-    return it != newsgroups.end();
-  }
+size_t DatabaseRAM::NonDeletedArticleCount(int ngID)
+{
+    MapNewsGroup::iterator it = newsgroups.find(ngID);
+
+    if (it != newsgroups.end())
+    {
+        return it->second.NonDeletedArticleCount();
+    }
+    else
+    {
+        cout << "Checking ArticleCount() for a news group that does not exist. " << endl;
+        return 0;
+    }
+}
+
+bool DatabaseRAM::FindNewsGroup(string name) const
+{
+    // MapNewsGroup::const_iterator it = find_if(
+    //         newsgroups.begin(),
+    //         newsgroups.end(),
+    //         bind2nd(FindNewsGroupByName(), name));
+
+    // return it != newsgroups.end();
+    return name.empty();
+}
 }
