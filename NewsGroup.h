@@ -6,6 +6,7 @@
 #include "Article.h"
 #include <functional>
 #include <iostream>
+#include <algorithm>
 
 using std::binary_function;
 using std::vector;
