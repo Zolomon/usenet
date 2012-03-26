@@ -20,25 +20,29 @@ class NewsGroup
 public:
     NewsGroup(string name) : name(name), isDeleted(false) {}
 
-    vector<Article>                 ListArticles();
-    void                            CreateArticle(string title, string author, string text);
-    bool                            DeleteArticle(int aID);
-    Article *                       GetArticle(int aID);
-    bool                            ArticleExists(int aID);
-    bool                            FindArticle(string title) const;
-    size_t                          ArticleCount() {return articles.size() - deletedArticles;}
+    vector<Article> ListArticles();
+    void CreateArticle(string title, string author, string text);
+    bool DeleteArticle(int aID);
+    Article const * GetArticle(int aID);
+    bool ArticleExists(int aID);
+    bool FindArticle(string title) const;
+    size_t ArticleCount() 
+    {
+      cout << "Article.("<< deletedArticles << ") Size()" << endl; 
+      return articles.size() - deletedArticles;
+    }
 
-    void                            Delete() { isDeleted = true; }
-    bool                            IsDeleted() const { return isDeleted; }
-    string                          GetName() const { return name; }
+    void Delete() { isDeleted = true; }
+    bool IsDeleted() const { return isDeleted; }
+    string GetName() const { return name; }
 
-    vector<Article>::size_type      Size();
+    vector<Article>::size_type Size();
 private:
     friend class DatabaseRAM;
-    string                          name;
-    bool                            isDeleted;
-    size_t                          deletedArticles;
-    vector<Article>                 articles;
+    string name;
+    bool isDeleted;
+    size_t deletedArticles;
+    vector<Article> articles;
 };
 
 struct FindArticleByName : public binary_function<Article, string, bool>

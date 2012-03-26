@@ -109,6 +109,7 @@ void HandleListArticles(MessageHandler &mh, IDatabase *db)
         vector<Article> result = db->ListArticles(ngID);
         mh.sendCode(Protocol::ANS_ACK);
         mh.sendIntParameter(db->ArticleCount(ngID));
+	cout << "Article["<<ngID<<"].Count: " << db->ArticleCount(ngID) << endl;
         for (vector<Article>::size_type i = 0; i != result.size(); ++i)
         {
             if (!result[i].IsDeleted())

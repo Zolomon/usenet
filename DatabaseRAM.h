@@ -9,22 +9,23 @@ namespace usenet
 class DatabaseRAM : public IDatabase
 {
 public:
-	vector<NewsGroup> 			ListNewsGroups();
-	bool 						CreateNewsGroup(string title);
-	void 						DeleteNewsGroup(int ngID);
-	bool						NewsGroupExists(int ngID);
+	vector<NewsGroup> ListNewsGroups();
+	bool CreateNewsGroup(string title);
+	void DeleteNewsGroup(int ngID);
+	bool NewsGroupExists(int ngID);
 
-	vector<Article>				ListArticles(int ngID);
-	bool						CreateArticle(int ngID, string title, string author, string text);
-	bool						DeleteArticle(int ngID, int aID);
-	Article * 					GetArticle(int ngID, int aID);
-	bool 						ArticleExists(int ngID, int aID);
-	size_t 						NewsGroupCount() { return newsgroups.size()-deletedGroups; }
-	size_t 						ArticleCount(int ngID) { return newsgroups[static_cast<vector<Article>::size_type>(ngID)].ArticleCount(); }
+	vector<Article>	ListArticles(int ngID);
+	bool CreateArticle(int ngID, string title, string author, string text);
+	bool DeleteArticle(int ngID, int aID);
+	Article const * GetArticle(int ngID, int aID);
+	bool ArticleExists(int ngID, int aID);
+	size_t NewsGroupCount() { return newsgroups.size()-deletedGroups; }
+	size_t ArticleCount(int ngID); 
+	
 private:
-	bool 					FindNewsGroup(string name) const;
-	vector<NewsGroup> 		newsgroups;
-	size_t 					deletedGroups;
+	bool FindNewsGroup(string name) const;
+	vector<NewsGroup> newsgroups;
+	size_t deletedGroups;
 };
 struct FindNewsGroupByName : public binary_function<NewsGroup, string, bool>
 {

@@ -19,18 +19,26 @@ bool NewsGroup::DeleteArticle(int aID)
     if (idx > articles.size() || idx == 0 || !ArticleExists(aID))
         return false;
 
-    articles[aID].Delete();
-    deletedArticles++;
+    if (!articles[aID].IsDeleted()) {
+      cout << "\t\tDeleting Article["<<aID<<"]" << endl;
+      articles[aID].Delete();
+      deletedArticles++;
+    }
+
+    if (deletedArticles >= articles.size()) cout << "\t\t\tArticles.Size("<<articles.size()<<") vs deletedArticles = " << deletedArticles << endl;
+
     return articles[aID].IsDeleted();
 }
 
-Article * NewsGroup::GetArticle(int aID)
+Article const * NewsGroup::GetArticle(int aID)
 {
-    Article *result = 0;
-    if (ArticleExists(aID))
-        result = &articles[static_cast<vector<Article>::size_type>(aID)];
+    Article const * doesNotExist = 0;
+    if (ArticleExists(aID)) {
+      Article const * exists = &articles[static_cast<vector<Article>::size_type>(aID)]; 
+      return exists;
+    }
 
-    return result;
+    return doesNotExist;
 }
 
 bool NewsGroup::ArticleExists(int aID) {

@@ -11,8 +11,8 @@ using protocol::Protocol;
 
 namespace usenet
 {
-vector<NewsGroup> DatabaseRAM::ListNewsGroups()
-{
+  vector<NewsGroup> DatabaseRAM::ListNewsGroups()
+  {
     // vector<NewsGroup> ng;
 
     // for (std::vector<NewsGroup>::size_type i = 0;
@@ -24,9 +24,9 @@ vector<NewsGroup> DatabaseRAM::ListNewsGroups()
 
     // return ng;
     return newsgroups;
-}
-bool DatabaseRAM::CreateNewsGroup(string name)
-{
+  }
+  bool DatabaseRAM::CreateNewsGroup(string name)
+  {
     // Return false if NewsGroup already exists.
     bool result = false;
 
@@ -42,34 +42,39 @@ bool DatabaseRAM::CreateNewsGroup(string name)
 
     result = true;
     return result;
-}
-void DatabaseRAM::DeleteNewsGroup(int ngID)
-{
-    newsgroups[ngID].Delete();
-    deletedGroups++;
-}
+  }
+  void DatabaseRAM::DeleteNewsGroup(int ngID)
+  {
+    if (NewsGroupExists(ngID) && !newsgroups[ngID].IsDeleted()) {
+      cout << "Deleting NewsGroup[" << ngID << "]" << endl;
+      newsgroups[ngID].Delete();
+      deletedGroups++;
+      if (deletedGroups >= newsgroups.size()) 
+	cout << "newsgroups.size("<<newsgroups.size()<<") && deletedGroups = " << deletedGroups << endl;
+    }
+  }
 
-bool DatabaseRAM::NewsGroupExists(int ngID)
-{
+  bool DatabaseRAM::NewsGroupExists(int ngID)
+  {
     return  static_cast<vector<NewsGroup>::size_type>(ngID) < newsgroups.size() &&
-            !newsgroups[static_cast<vector<NewsGroup>::size_type>(ngID)].IsDeleted();
-}
+      !newsgroups[static_cast<vector<NewsGroup>::size_type>(ngID)].IsDeleted();
+  }
 
-vector<Article> DatabaseRAM::ListArticles(int ngID)
-{
+  vector<Article> DatabaseRAM::ListArticles(int ngID)
+  {
     vector<Article> articles;
     if (NewsGroupExists(ngID))
-        articles = newsgroups[static_cast<vector<Article>::size_type>(ngID)].ListArticles();
+      articles = newsgroups[static_cast<vector<Article>::size_type>(ngID)].ListArticles();
 
     return articles;
-}
-bool DatabaseRAM::CreateArticle(int ngID, string title, string author, string text)
-{
+  }
+  bool DatabaseRAM::CreateArticle(int ngID, string title, string author, string text)
+  {
     // Return false if article already exists.
     bool result = false;
 
     if (NewsGroupExists(ngID))
-    {
+      {
         // Find article
         bool found = newsgroups[static_cast<vector<NewsGroup>::size_type>(ngID)].FindArticle(title);
 
@@ -80,60 +85,72 @@ bool DatabaseRAM::CreateArticle(int ngID, string title, string author, string te
         cout << "Creating NewsGroup[" << ngID << "].Article(" << title << "," << author << "," << text << ")" << endl;
         newsgroups[ngID].CreateArticle(title, author, text);
         result = true;
-    }
+      }
 
     return result;
-}
-bool DatabaseRAM::DeleteArticle(int ngID, int aID)
-{
+  }
+  bool DatabaseRAM::DeleteArticle(int ngID, int aID)
+  {
     bool result = false;
 
     if (NewsGroupExists(ngID))
-    {
-        newsgroups[static_cast<vector<NewsGroup>::size_type>(ngID)].DeleteArticle(aID-1);
+      {
+	cout << "Deleting NewsGroup["<<ngID<<"].Article["<<aID<<"]" << endl;
+	  newsgroups[static_cast<vector<NewsGroup>::size_type>(ngID)].DeleteArticle(aID-1);
         result = true;
-    }
+      }
 
     return result;
-}
-Article *  DatabaseRAM::GetArticle(int ngID, int aID)
-{
+  }
+
+  Article const * DatabaseRAM::GetArticle(int ngID, int aID)
+  {
     if (NewsGroupExists(ngID))
-    {
+      {
         if (newsgroups[static_cast<vector<NewsGroup>::size_type>(ngID)].ArticleExists(aID))
-        {
-            Article * article = newsgroups[static_cast<vector<NewsGroup>::size_type>(ngID)].GetArticle(aID);
+	  {
+            Article const * article = newsgroups[static_cast<vector<NewsGroup>::size_type>(ngID)].GetArticle(aID);
             cout << "NewsGroup[" << ngID << "].Article[" << aID << "]" << endl
                  << "\tTitle:\t\t" << article->GetTitle() << endl
                  << "\tAuthor:\t\t" << article->GetAuthor() << endl;
-                 //<< "\tText:\t\t" << article->GetText() << endl;
+	    //<< "\tText:\t\t" << article->GetText() << endl;
             return article;
-        }
+	  }
         else
-            cerr << "Article[" << aID << "] does not exist." << endl;
-    }
+	  cerr << "Article[" << aID << "] does not exist." << endl;
+      }
     else
-    {
+      {
         cerr << "NewsGroup[" << ngID << "] does not exist." << endl;
-    }
+      }
 
     // Could not find article.
     return 0;
-}
+  }
 
-bool DatabaseRAM::ArticleExists(int ngID, int aID)
-{
+  bool DatabaseRAM::ArticleExists(int ngID, int aID)
+  {
     return NewsGroupExists(ngID) &&
-           newsgroups[static_cast<vector<NewsGroup>::size_type>(ngID)].ArticleExists(aID);
-}
+      newsgroups[static_cast<vector<NewsGroup>::size_type>(ngID)].ArticleExists(aID);
+  }
+  
+  size_t DatabaseRAM::ArticleCount(int ngID) 
+  { 
+    if (NewsGroupExists(ngID)) {
+      return newsgroups[static_cast<vector<Article>::size_type>(ngID)].ArticleCount(); 
+    } else {
+      cout << "Checking ArticleCount() for a news group that does not exist. " << endl;
+      return 0;
+    }    
+  }
 
-bool DatabaseRAM::FindNewsGroup(string name) const
-{
+  bool DatabaseRAM::FindNewsGroup(string name) const
+  {
     vector<NewsGroup>::const_iterator it = find_if(
-            newsgroups.begin(),
-            newsgroups.end(),
-            bind2nd(FindNewsGroupByName(), name));
+						   newsgroups.begin(),
+						   newsgroups.end(),
+						   bind2nd(FindNewsGroupByName(), name));
 
     return it != newsgroups.end();
-}
+  }
 }
