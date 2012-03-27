@@ -172,7 +172,7 @@ void HandleCreateArticle(MessageHandler &mh, IDatabase *db)
 void HandleDeleteArticle(MessageHandler &mh, IDatabase *db)
 {
     int ngID = mh.recvIntParameter();
-    int aID = mh.recvIntParameter();
+    int aID = mh.recvIntParameter() - 1;
     cout << "Deleting NewsGroup["<<ngID<<"].Article["<<aID<<"]"<<endl;
 
     int cmdEnd = mh.recvCode();
@@ -192,7 +192,7 @@ void HandleDeleteArticle(MessageHandler &mh, IDatabase *db)
         cout << "Prior deletion: " << endl;
         cout << db->ToString() << endl;
 
-        if (db->ArticleExists(ngID, aID-1))
+        if (db->ArticleExists(ngID, aID))
         {
             cout << "\t\tArticle exists ..." << endl;
             db->DeleteArticle(ngID, aID);
