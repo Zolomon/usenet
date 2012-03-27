@@ -189,7 +189,10 @@ void HandleDeleteArticle(MessageHandler &mh, IDatabase *db)
 
         //cout << "Article["<<ngID<<"]["<<aID<<"]: " << db->GetArticle(ngID, aID)->GetTitle() << endl;
 
-        if (db->ArticleExists(ngID, aID))
+        cout << "Prior deletion: " << endl;
+        cout << db->ToString() << endl;
+
+        if (db->ArticleExists(ngID, aID-1))
         {
             cout << "\t\tArticle exists ..." << endl;
             db->DeleteArticle(ngID, aID);
@@ -208,6 +211,9 @@ void HandleDeleteArticle(MessageHandler &mh, IDatabase *db)
         mh.sendCode(Protocol::ANS_NAK);
         mh.sendCode(Protocol::ERR_NG_DOES_NOT_EXIST);
     }
+
+    cout << "After deletion: " << endl;
+    cout << db->ToString() << endl;
 
     mh.sendCode(Protocol::ANS_END);
 }
@@ -257,7 +263,7 @@ void HandleGetArticle(MessageHandler &mh, IDatabase *db)
 }
 
   int DatabaseRAM::ID = 0;
-  int NewsGroup::articleID;
+  int NewsGroup::articleID = 0;
 
 int main(int argc, const char *argv[])
 {
@@ -336,31 +342,37 @@ int main(int argc, const char *argv[])
                     {
                     case Protocol::COM_LIST_NG:
                     {
+                        cout << "#####################" << endl;
                         HandleListNewsGroups(mh, db);
                     }
                     break;
                     case Protocol::COM_CREATE_NG:
                     {
+                        cout << "#####################" << endl;
                         HandleCreateNewsGroup(mh, db);
                     }
                     break;
                     case Protocol::COM_DELETE_NG:
                     {
+                        cout << "#####################" << endl;
                         HandleDeleteNewsGroup(mh, db);
                     }
                     break;
                     case Protocol::COM_LIST_ART:
                     {
+                        cout << "#####################" << endl;
                         HandleListArticles(mh, db);
                     }
                     break;
                     case Protocol::COM_CREATE_ART:
                     {
+                        cout << "#####################" << endl;
                         HandleCreateArticle(mh, db);
                     }
                     break;
                     case Protocol::COM_DELETE_ART:
                     {
+                        cout << "#####################" << endl;
                         HandleDeleteArticle(mh, db);
                     }
                     break;

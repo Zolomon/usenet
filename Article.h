@@ -2,8 +2,10 @@
 #define ARTICLE_H
 
 #include <string>
+#include <sstream>
 
 using std::string;
+using std::stringstream;
 
 namespace usenet
 {
@@ -32,6 +34,12 @@ public:
     }
     bool IsDeleted() {
         return isDeleted;
+    }
+
+    string ToString() {
+        stringstream ss; 
+        ss << "[" << title << ", " << author << ", " << text.substr(0, 10) << "...]:"<< (isDeleted ? "deleted" : "");
+        return ss.str();
     }
 
 private:

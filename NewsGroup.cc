@@ -1,6 +1,7 @@
 #include "NewsGroup.h"
 #include <algorithm>
 #include <utility>
+#include <sstream>
 
 using namespace std;
 
@@ -57,11 +58,8 @@ Article const *NewsGroup::GetArticle(int aID)
 bool NewsGroup::ArticleExists(int aID)
 {
     MapArticle::iterator it = articles->find(aID);
-    cout << "Is article at the end? " << endl;
-    if ( it == articles->end()) cout << "\t YES, FUCKIGN YES YES YES." << endl;
-    else cout << "\t NO, WE FOUND SOMETHJING... God, Hate my trypos!" << endl;
 
-    return it != articles->end(); // && !it->second.IsDeleted();
+    return it != articles->end() && !it->second.IsDeleted();
 }
 
 size_t NewsGroup::NonDeletedArticleCount() {
@@ -74,14 +72,26 @@ size_t NewsGroup::NonDeletedArticleCount() {
     return count;
 }
 
+string NewsGroup::ToString() {
+    stringstream ss;
+
+    MapArticle::iterator it;
+
+    ss << "NewsGroup: [" << name.substr(0, 10) <<"]:" << (isDeleted ? "deleted" : "") << endl;
+    for(it = articles->begin(); it != articles->end(); ++it) {
+        ss << "\t" << it->first <<":" << it->second.ToString() << endl;
+    }
+    return ss.str();
+} 
+
 bool NewsGroup::FindArticle(string title) const
 {
-    // MapArticle::const_iterator it = find_if(
-    //         articles->begin(),
-    //         articles->end(),
-    //         bind2nd(FindArticleByName(), title));
-    // return it != articles->end();
-    cout << "FindArticle("<< title << ") NOT IMPLEMENTED" << endl;
+    MapArticle::iterator it;
+    for (it = articles->begin(); it != articles->end(); ++it) {
+        if (it->second.GetTitle() == title) 
+            return true;
+    }
+
     return false;
 }
 }

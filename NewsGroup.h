@@ -36,6 +36,8 @@ public:
     string GetName() const { return name; }
 
     MapArticle::size_type Size();
+
+    string ToString();
 private:
     friend class DatabaseRAM;
     string name;

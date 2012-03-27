@@ -4,12 +4,10 @@
 #include <algorithm>
 #include "protocol.h"
 #include <utility>
+#include <sstream>
 
-using std::cout;
-using std::endl;
-using std::cerr;
+using namespace std;
 using protocol::Protocol;
-using std::make_pair;
 
 namespace usenet
 {
@@ -91,7 +89,7 @@ bool DatabaseRAM::CreateArticle(int ngID, string title, string author, string te
     bool result = false;
 
     MapNewsGroup::iterator it = newsgroups->find(ngID);
-
+    cout << "Creating article: " << endl << ToString() << endl;
     if (it != newsgroups->end())
     {
         // Find article
@@ -101,10 +99,10 @@ bool DatabaseRAM::CreateArticle(int ngID, string title, string author, string te
         if (found) return false;
 
         // Create if not found
-        cout << "Creating NewsGroup[" << ngID << "].Article(" << title << "," << author << "," << text << ")" << endl;
         it->second.CreateArticle(title, author, text);
         result = true;
     }
+    cout << "Article created: " << endl << ToString() << endl;
 
     return result;
 }
@@ -115,8 +113,6 @@ bool DatabaseRAM::DeleteArticle(int ngID, int aID)
 
     if (it != newsgroups->end())
     {
-        cout << "Deleting NewsGroup[" << ngID << "].Article[" << aID << "]" << endl;
-	cout << "Name of article to be deleted" << it->second.GetArticle(aID)->GetTitle() << endl;
         it->second.DeleteArticle(aID);
         result = true;
     }
@@ -194,14 +190,25 @@ size_t DatabaseRAM::NonDeletedArticleCount(int ngID)
     }
 }
 
+string DatabaseRAM::ToString() {
+    stringstream ss;
+
+    MapNewsGroup::iterator it;
+    for(it = newsgroups->begin(); it != newsgroups->end(); ++it) {
+        ss << it->first <<":"<<it->second.ToString() << endl;
+    }
+    return ss.str();
+}
+
 bool DatabaseRAM::FindNewsGroup(string name) const
 {
-    // MapNewsGroup::const_iterator it = find_if(
-    //         newsgroups->begin(),
-    //         newsgroups->end(),
-    //         bind2nd(FindNewsGroupByName(), name));
+    MapNewsGroup::iterator it;
 
-    // return it != newsgroups->end();
-    return name.empty();
+    for (it = newsgroups->begin(); it != newsgroups->end(); ++it) {
+        if (it->second.GetName() == name) {
+            return true;
+        }
+    }
+    return false;
 }
 }

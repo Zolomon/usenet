@@ -27,6 +27,8 @@ public:
 	bool ArticleExists(int ngID, int aID);
 	size_t NonDeletedArticleCount(int ngID);
 
+	string ToString();
+
 private:
 	bool FindNewsGroup(string name) const;
 	MapNewsGroup* newsgroups;
