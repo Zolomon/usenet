@@ -134,6 +134,7 @@ void DatabaseDB::CreateArticleTable()
 DatabaseDB::~DatabaseDB()
 {
     sqlite3_close(db);
+    //free(db);
 }
 
 MapNewsGroup *DatabaseDB::ListNewsGroups()
@@ -380,7 +381,7 @@ size_t DatabaseDB::NonDeletedNewsGroupCount()
     if (SQLITE_OK != rc)
     {
         cerr << "\tCan not prepare select statement " << select_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
-        return NULL;
+        return 0;
     }
 
     size_t count = 0;
@@ -393,7 +394,7 @@ size_t DatabaseDB::NonDeletedNewsGroupCount()
     if (SQLITE_DONE != rc)
     {
         cerr << "\tSelect statement did not finish with DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
-        return NULL;
+        return 0;
     }
 
     cout << "\tNondeleted NewsGroup Count: " << count << " ..." << endl;
@@ -463,7 +464,7 @@ MapArticle *DatabaseDB::ListArticles(int ngID)
 
 bool DatabaseDB::CreateArticle(int ngID, string title, string author, string text)
 {
-    if (!NewsGroupExists(ngID)) return false; 
+    if (!NewsGroupExists(ngID)) return false;
 
     // Our query
     const char insert_sql[] = "INSERT INTO articles (ngID, title, author, text, deleted) VALUES (?,?,?,?,0)";
@@ -720,7 +721,7 @@ size_t DatabaseDB::NonDeletedArticleCount(int ngID)
     if (SQLITE_OK != rc)
     {
         cerr << "\tCan not prepare select statement " << select_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
-        return NULL;
+        return 0;
     }
 
     // Bind parameters
@@ -741,7 +742,7 @@ size_t DatabaseDB::NonDeletedArticleCount(int ngID)
     if (SQLITE_DONE != rc)
     {
         cerr << "\tSelect statement did not finish with DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
-        return NULL;
+        return 0;
     }
 
     cout << "\tNondeleted Article Count: " << count << " ..." << endl;
