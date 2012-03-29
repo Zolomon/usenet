@@ -31,12 +31,8 @@ void HandleListNewsGroups(MessageHandler &mh, IDatabase *db)
 
     MapNewsGroup *ng = db->ListNewsGroups();
 
-    cout << "Fetched MapNewsGroup[Size: " << ng->size() << "]" << endl;
-
     int nds = db->NonDeletedNewsGroupCount();
     mh.sendIntParameter(nds);
-
-    cout << "NDS: " << nds << endl;
 
     if (ng->size() > 0)
     {
@@ -47,7 +43,6 @@ void HandleListNewsGroups(MessageHandler &mh, IDatabase *db)
             if (!it->second.IsDeleted())
             {
                 mh.sendIntParameter(it->first);
-                cout << "[" << it->first << "]NG->Name: " << it->second.GetName() << endl;
                 mh.sendStringParameter(it->second.GetName());
             }
         }
@@ -67,9 +62,7 @@ void HandleCreateNewsGroup(MessageHandler &mh, IDatabase *db)
     }
 
     mh.sendCode(Protocol::ANS_CREATE_NG);
-    cout << "Before Created: " << db->ToString();
     bool newsGroupCreated = db->CreateNewsGroup(newsGroupName);
-    cout << "After Created: " << db->ToString();
 
     if (newsGroupCreated)
     {
@@ -188,23 +181,19 @@ void HandleDeleteArticle(MessageHandler &mh, IDatabase *db)
     mh.sendCode(Protocol::ANS_DELETE_ART);
     if (db->NewsGroupExists(ngID))
     {
-        cout << "NewsGroup Exists" << endl;
         if (db->ArticleExists(ngID, aID))
         {
-            cout << "Article Exists" << endl;
             db->DeleteArticle(ngID, aID);
             mh.sendCode(Protocol::ANS_ACK);
         }
         else
         {
-            cout << "Article Does Not Exist" << endl;
             mh.sendCode(Protocol::ANS_NAK);
             mh.sendCode(Protocol::ERR_ART_DOES_NOT_EXIST);
         }
     }
     else
     {
-        cout << "NewsGroup does not exist" << endl;
         mh.sendCode(Protocol::ANS_NAK);
         mh.sendCode(Protocol::ERR_NG_DOES_NOT_EXIST);
     }
@@ -270,11 +259,6 @@ int main(int argc, const char *argv[])
     if (argc == 3)
     {
         string dbOption = argv[2];
-
-        cout << "dbOption == " << dbOption << endl;
-        cout << "argv0 == " << argv[0] << endl;
-        cout << "argv1 == " << argv[1] << endl;
-        cout << "argv2 == " << argv[2] << endl;
 
         if (dbOption.compare("-m") == 0 )
         {

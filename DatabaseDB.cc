@@ -19,13 +19,13 @@ DatabaseDB::DatabaseDB()
     rc = sqlite3_open(dbname, &db);
     if (SQLITE_OK != rc)
     {
-        cerr << "Can not open database " << dbname << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tCan not open database " << dbname << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
     else
     {
-        cout << "Database connection initialised ... [Keep 'em queries coming]" << endl;
+        cout << "\tDatabase connection initialised ... [Keep 'em queries coming]" << endl;
     }
 
     FillDatabase();
@@ -49,7 +49,7 @@ bool DatabaseDB::TableExists(string tablename)
     int rc = sqlite3_bind_text(select_stmt, 1, tablename.c_str(), strlen(tablename.c_str()), NULL);
     if (SQLITE_OK != rc)
     {
-        cerr << "Error binding value in select statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tError binding value in select statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
@@ -58,7 +58,7 @@ bool DatabaseDB::TableExists(string tablename)
     rc = sqlite3_prepare_v2(db, select_sql, -1, &select_stmt, NULL);
     if (SQLITE_OK != rc)
     {
-        cerr << "Can not prepare select statement " << select_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tCan not prepare select statement " << select_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
         return NULL;
     }
 
@@ -68,20 +68,17 @@ bool DatabaseDB::TableExists(string tablename)
     while (SQLITE_ROW == (rc = sqlite3_step(select_stmt)))
     {
 
-        int count = sqlite3_column_int(select_stmt, 0);
-
-        if (count == 1)
-        {
-            found = true;
-            cout << tablename << " table already exists" << endl;
-        }
+        found = sqlite3_column_int(select_stmt, 0);
     }
 
     if (SQLITE_DONE != rc)
     {
-        cerr << "Select statement did not finish with DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tSelect statement did not finish with DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
         return NULL;
     }
+
+    if (found) cout << "\tTable[" << tablename << "] exists ..." << endl;
+    else cerr << "\tTable[" << tablename << "] does not exist ..." << endl;
 
     sqlite3_finalize(select_stmt);
 
@@ -101,11 +98,13 @@ void DatabaseDB::CreateNewsGroupTable()
     int rc = sqlite3_exec(db, create_sql, NULL, NULL, &exec_errmsg);
     if (SQLITE_OK != rc)
     {
-        cerr << "Error creating table (" << rc << "): " << exec_errmsg << endl;
+        cerr << "\tError creating table (" << rc << "): " << exec_errmsg << endl;
         sqlite3_free(exec_errmsg);
         sqlite3_close(db);
         exit(1);
     }
+
+    cout << "\tTable[newsgroups] created successfully ..." << endl;
 }
 
 void DatabaseDB::CreateArticleTable()
@@ -123,11 +122,13 @@ void DatabaseDB::CreateArticleTable()
     int rc = sqlite3_exec(db, create_sql, NULL, NULL, &exec_errmsg);
     if (SQLITE_OK != rc)
     {
-        cerr << "Error creating table (" << rc << "): " << exec_errmsg << endl;
+        cerr << "\tError creating table (" << rc << "): " << exec_errmsg << endl;
         sqlite3_free(exec_errmsg);
         sqlite3_close(db);
         exit(1);
     }
+
+    cout << "\tTable[articles] created successfully ..." << endl;
 }
 
 DatabaseDB::~DatabaseDB()
@@ -148,7 +149,7 @@ MapNewsGroup *DatabaseDB::ListNewsGroups()
     int rc = sqlite3_prepare_v2(db, select_sql, -1, &select_stmt, NULL);
     if (SQLITE_OK != rc)
     {
-        cerr << "Can not prepare select statement " << select_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tCan not prepare select statement " << select_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
         return NULL;
     }
 
@@ -164,22 +165,20 @@ MapNewsGroup *DatabaseDB::ListNewsGroups()
                     ));
         bool deleted = sqlite3_column_int(select_stmt, 2);
 
-        cout << "Ng: [" << id << ", " << name << ", " << deleted << "]" << endl;
-
         NewsGroup ng(name, deleted);
 
         newsgroups->insert(make_pair(id, ng));
     }
 
-    cout << "Created MapNewsGroup[Size: " << newsgroups->size() << "]" << endl;
-
     if (SQLITE_DONE != rc)
     {
-        cerr << "Select statement did not finish with DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tSelect statement did not finish with DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
         return NULL;
     }
 
     sqlite3_finalize(select_stmt);
+
+    cout << "\tCreated list of NewsGroups successfully ..." << endl;
 
     return newsgroups;
 }
@@ -197,7 +196,7 @@ bool DatabaseDB::CreateNewsGroup(string title)
     int rc = sqlite3_prepare_v2(db, insert_sql, -1, &insert_stmt, NULL);
     if (SQLITE_OK != rc)
     {
-        cerr << "Can not prepare insert statement " << insert_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tCan not prepare insert statement " << insert_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
@@ -207,7 +206,7 @@ bool DatabaseDB::CreateNewsGroup(string title)
 
     if (SQLITE_OK != rc)
     {
-        cerr << "Error binding value in insert (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tError binding value in insert (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
@@ -216,13 +215,14 @@ bool DatabaseDB::CreateNewsGroup(string title)
     rc = sqlite3_step(insert_stmt);
     if (SQLITE_DONE != rc)
     {
-        cerr << "Insert statement did not return DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tInsert statement did not return DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_finalize(insert_stmt);
         return false;
     }
     else
     {
-        cout << "NewsGroup created successfully ..." << endl;
+        // Newsgroup created successfully
+        cout << "\tCreated new NewsGroup successfully ..." << endl;
         sqlite3_finalize(insert_stmt);
         return true;
     }
@@ -241,7 +241,7 @@ bool DatabaseDB::DeleteNewsGroup(int ngID)
     int rc = sqlite3_prepare_v2(db, update_sql, -1, &update_stmt, NULL);
     if (SQLITE_OK != rc)
     {
-        cerr << "Can not prepare update statement " << update_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tCan not prepare update statement " << update_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
@@ -250,7 +250,7 @@ bool DatabaseDB::DeleteNewsGroup(int ngID)
     rc = sqlite3_bind_int(update_stmt, 1, ngID);
     if (SQLITE_OK != rc)
     {
-        cerr << "Error binding value in update statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tError binding value in update statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
@@ -259,13 +259,14 @@ bool DatabaseDB::DeleteNewsGroup(int ngID)
     rc = sqlite3_step(update_stmt);
     if (SQLITE_DONE != rc)
     {
-        cerr << "Update statement did not return DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tUpdate statement did not return DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_finalize(update_stmt);
         return false;
     }
     else
     {
-        cout << "NewsGroup deleted successfully ..." << endl;
+        // Newsgroup created successfully
+        cout << "\tDeleted NewsGroup successfully ..." << endl;
         sqlite3_finalize(update_stmt);
         return true;
     }
@@ -284,7 +285,7 @@ bool DatabaseDB::NewsGroupExists(int ngID)
     int rc = sqlite3_prepare_v2(db, select_sql, -1, &select_stmt, NULL);
     if (SQLITE_OK != rc)
     {
-        cerr << "Can not prepare select statement " << select_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tCan not prepare select statement " << select_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
         return NULL;
     }
 
@@ -292,7 +293,7 @@ bool DatabaseDB::NewsGroupExists(int ngID)
     sqlite3_bind_int(select_stmt, 1, ngID);
     if (SQLITE_OK != rc)
     {
-        cerr << "Error binding value in select statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tError binding value in select statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
@@ -307,9 +308,12 @@ bool DatabaseDB::NewsGroupExists(int ngID)
 
     if (SQLITE_DONE != rc)
     {
-        cerr << "Select statement did not finish with DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tSelect statement did not finish with DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
         return NULL;
     }
+
+    if (found) cout << "\tNewsGroup exists ..." << endl;
+    else cerr << "\tNewsGroup could not be found ..." << endl;
 
     sqlite3_finalize(select_stmt);
     return found;
@@ -328,7 +332,7 @@ bool DatabaseDB::NewsGroupExists(string title)
     int rc = sqlite3_prepare_v2(db, select_sql, -1, &select_stmt, NULL);
     if (SQLITE_OK != rc)
     {
-        cerr << "Can not prepare select statement " << select_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tCan not prepare select statement " << select_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
         return NULL;
     }
 
@@ -336,7 +340,7 @@ bool DatabaseDB::NewsGroupExists(string title)
     rc = sqlite3_bind_text(select_stmt, 1, title.c_str(), strlen(title.c_str()), NULL);
     if (SQLITE_OK != rc)
     {
-        cerr << "Error binding value in select statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tError binding value in select statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
@@ -351,9 +355,12 @@ bool DatabaseDB::NewsGroupExists(string title)
 
     if (SQLITE_DONE != rc)
     {
-        cerr << "Select statement did not finish with DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tSelect statement did not finish with DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
         return NULL;
     }
+
+    if (found) cout << "\tNewsGroup exists ..." << endl;
+    else cerr << "\tNewsGroup could not be found ..." << endl;
 
     sqlite3_finalize(select_stmt);
     return found;
@@ -372,7 +379,7 @@ size_t DatabaseDB::NonDeletedNewsGroupCount()
     int rc = sqlite3_prepare_v2(db, select_sql, -1, &select_stmt, NULL);
     if (SQLITE_OK != rc)
     {
-        cerr << "Can not prepare select statement " << select_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tCan not prepare select statement " << select_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
         return NULL;
     }
 
@@ -385,12 +392,13 @@ size_t DatabaseDB::NonDeletedNewsGroupCount()
     }
     if (SQLITE_DONE != rc)
     {
-        cerr << "Select statement did not finish with DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tSelect statement did not finish with DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
         return NULL;
     }
 
-    sqlite3_finalize(select_stmt);
+    cout << "\tNondeleted NewsGroup Count: " << count << " ..." << endl;
 
+    sqlite3_finalize(select_stmt);
     return count;
 }
 
@@ -408,7 +416,7 @@ MapArticle *DatabaseDB::ListArticles(int ngID)
     int rc = sqlite3_prepare_v2(db, select_sql, -1, &select_stmt, NULL);
     if (SQLITE_OK != rc)
     {
-        cerr << "Can not prepare select statement " << select_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tCan not prepare select statement " << select_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
         return NULL;
     }
 
@@ -416,7 +424,7 @@ MapArticle *DatabaseDB::ListArticles(int ngID)
     rc = sqlite3_bind_int(select_stmt, 1, ngID);
     if (SQLITE_OK != rc)
     {
-        cerr << "Error binding value in select statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tError binding value in select statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
@@ -440,16 +448,16 @@ MapArticle *DatabaseDB::ListArticles(int ngID)
         Article article(title, author, text, deleted);
 
         articles->insert(make_pair(id, article));
-        cout << "Articles[" << articles->size() << "]: added " << article.ToString() << endl;
     }
     if (SQLITE_DONE != rc)
     {
-        cerr << "Select statement did not finish with DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tSelect statement did not finish with DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
         return NULL;
     }
 
-    sqlite3_finalize(select_stmt);
+    cout << "\tCreated list of Articles successfully ..." << endl;
 
+    sqlite3_finalize(select_stmt);
     return articles;
 }
 
@@ -468,7 +476,7 @@ bool DatabaseDB::CreateArticle(int ngID, string title, string author, string tex
     int rc = sqlite3_prepare_v2(db, insert_sql, -1, &insert_stmt, NULL);
     if (SQLITE_OK != rc)
     {
-        cerr << "Can not prepare insert statement " << insert_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tCan not prepare insert statement " << insert_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
@@ -478,35 +486,35 @@ bool DatabaseDB::CreateArticle(int ngID, string title, string author, string tex
     rc = sqlite3_bind_int(insert_stmt, 1, ngID);
     if (SQLITE_OK != rc)
     {
-        cerr << "Error binding value in insert statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tError binding value in insert statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
     rc = sqlite3_bind_text(insert_stmt, 2, title.c_str(), strlen(title.c_str()), NULL);
     if (SQLITE_OK != rc)
     {
-        cerr << "Error binding value in insert statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tError binding value in insert statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
     rc = sqlite3_bind_text(insert_stmt, 3, author.c_str(), strlen(author.c_str()), NULL);
     if (SQLITE_OK != rc)
     {
-        cerr << "Error binding value in insert statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tError binding value in insert statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
     rc = sqlite3_bind_text(insert_stmt, 4, text.c_str(), strlen(text.c_str()), NULL);
     if (SQLITE_OK != rc)
     {
-        cerr << "Error binding value in insert statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tError binding value in insert statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
 
     if (SQLITE_OK != rc)
     {
-        cerr << "Error binding value in insert (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tError binding value in insert (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
@@ -515,13 +523,13 @@ bool DatabaseDB::CreateArticle(int ngID, string title, string author, string tex
     rc = sqlite3_step(insert_stmt);
     if (SQLITE_DONE != rc)
     {
-        cerr << "Insert statement did not return DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tInsert statement did not return DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_finalize(insert_stmt);
         return false;
     }
     else
     {
-        cout << "Article created successfully ..." << endl;
+        cout << "\tArticle created successfully ..." << endl;
         sqlite3_finalize(insert_stmt);
         return true;
     }
@@ -529,7 +537,7 @@ bool DatabaseDB::CreateArticle(int ngID, string title, string author, string tex
 
 bool DatabaseDB::DeleteArticle(int ngID, int aID)
 {
-    cout << "Trying to delete Article[" << ngID << "." << aID << "]" << endl;
+    cout << "\tTrying to delete Article[" << ngID << "." << aID << "]" << endl;
     // Our query
     const char update_sql[] = "UPDATE articles SET deleted = 1 WHERE id = ? AND ngID = ? ";
 
@@ -541,7 +549,7 @@ bool DatabaseDB::DeleteArticle(int ngID, int aID)
     int rc = sqlite3_prepare_v2(db, update_sql, -1, &update_stmt, NULL);
     if (SQLITE_OK != rc)
     {
-        cerr << "Can not prepare update statement " << update_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tCan not prepare update statement " << update_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
@@ -550,14 +558,14 @@ bool DatabaseDB::DeleteArticle(int ngID, int aID)
     rc = sqlite3_bind_int(update_stmt, 1, aID);
     if (SQLITE_OK != rc)
     {
-        cerr << "Error binding value in update statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tError binding value in update statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
     rc = sqlite3_bind_int(update_stmt, 2, ngID);
     if (SQLITE_OK != rc)
     {
-        cerr << "Error binding value in update statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tError binding value in update statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
@@ -566,13 +574,14 @@ bool DatabaseDB::DeleteArticle(int ngID, int aID)
     rc = sqlite3_step(update_stmt);
     if (SQLITE_DONE != rc)
     {
-        cerr << "Update statement did not return DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tUpdate statement did not return DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_finalize(update_stmt);
         return false;
     }
     else
     {
-        cout << "Article deleted successfully ..." << endl;
+        // Article deleted successfully
+        cout << "\tArticle deleted successfully ..." << endl;
         sqlite3_finalize(update_stmt);
         return true;
     }
@@ -580,7 +589,7 @@ bool DatabaseDB::DeleteArticle(int ngID, int aID)
 
 Article const *DatabaseDB::GetArticle(int ngID, int aID)
 {
-    cout << "Trying to get Article[" << aID << "]" << endl;
+    cout << "\tTrying to get Article[" << aID << "]" << endl;
     // Our SQL query
     const char *select_sql = "SELECT title, author, text FROM articles WHERE ngID = ? AND id = ? AND deleted = 0 ORDER BY id ASC";
 
@@ -592,21 +601,21 @@ Article const *DatabaseDB::GetArticle(int ngID, int aID)
     int rc = sqlite3_prepare_v2(db, select_sql, -1, &select_stmt, NULL);
     if (SQLITE_OK != rc)
     {
-        cerr << "Can not prepare select statement " << select_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tCan not prepare select statement " << select_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
         return NULL;
     }
     // Bind to query
     rc = sqlite3_bind_int(select_stmt, 1, ngID);
     if (SQLITE_OK != rc)
     {
-        cerr << "Error binding value in select statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tError binding value in select statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
     rc = sqlite3_bind_int(select_stmt, 2,  aID);
     if (SQLITE_OK != rc)
     {
-        cerr << "Error binding value in select statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tError binding value in select statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
@@ -628,17 +637,17 @@ Article const *DatabaseDB::GetArticle(int ngID, int aID)
                              ));
 
         article = new Article(title, author, text);
-        cout << "Found Article[" << aID << "]" << endl;
     }
 
     if (SQLITE_DONE != rc)
     {
-        cerr << "Select statement did not finish with DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tSelect statement did not finish with DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
         return NULL;
     }
 
+    if (article != NULL) cout << "\tArticle retrieved successfully ..." << endl;
+    else cerr << "\tCould not retrieve Article ..." << endl;
     sqlite3_finalize(select_stmt);
-
     return article;
 }
 
@@ -655,7 +664,7 @@ bool DatabaseDB::ArticleExists(int ngID, int aID)
     int rc = sqlite3_prepare_v2(db, select_sql, -1, &select_stmt, NULL);
     if (SQLITE_OK != rc)
     {
-        cerr << "Can not prepare select statement " << select_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tCan not prepare select statement " << select_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
@@ -664,14 +673,14 @@ bool DatabaseDB::ArticleExists(int ngID, int aID)
     rc = sqlite3_bind_int(select_stmt, 1, aID);
     if (SQLITE_OK != rc)
     {
-        cerr << "Error binding value in select statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tError binding value in select statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
     rc = sqlite3_bind_int(select_stmt, 2, ngID);
     if (SQLITE_OK != rc)
     {
-        cerr << "Error binding value in select statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tError binding value in select statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
@@ -686,9 +695,12 @@ bool DatabaseDB::ArticleExists(int ngID, int aID)
 
     if (SQLITE_DONE != rc)
     {
-        cerr << "Select statement did not finish with DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tSelect statement did not finish with DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
         return NULL;
     }
+
+    if (found) cout << "\tArticle exists ..." << endl;
+    else cerr << "\tArticle could not be found ..." << endl;
 
     sqlite3_finalize(select_stmt);
     return found;
@@ -707,7 +719,7 @@ size_t DatabaseDB::NonDeletedArticleCount(int ngID)
     int rc = sqlite3_prepare_v2(db, select_sql, -1, &select_stmt, NULL);
     if (SQLITE_OK != rc)
     {
-        cerr << "Can not prepare select statement " << select_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tCan not prepare select statement " << select_sql << " (" << rc << "): " << sqlite3_errmsg(db) << endl;
         return NULL;
     }
 
@@ -715,7 +727,7 @@ size_t DatabaseDB::NonDeletedArticleCount(int ngID)
     rc = sqlite3_bind_int(select_stmt, 1, ngID);
     if (SQLITE_OK != rc)
     {
-        cerr << "Error binding value in select statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tError binding value in select statement (" << rc << "): " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         exit(1);
     }
@@ -728,19 +740,20 @@ size_t DatabaseDB::NonDeletedArticleCount(int ngID)
     }
     if (SQLITE_DONE != rc)
     {
-        cerr << "Select statement did not finish with DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
+        cerr << "\tSelect statement did not finish with DONE (" << rc << "): " << sqlite3_errmsg(db) << endl;
         return NULL;
     }
 
-    sqlite3_finalize(select_stmt);
+    cout << "\tNondeleted Article Count: " << count << " ..." << endl;
 
+    sqlite3_finalize(select_stmt);
     return count;
 }
 
 
 string DatabaseDB::ToString()
 {
-    return "";
+    return "NotImplemented ...";
 }
 
 }

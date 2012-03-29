@@ -26,9 +26,6 @@ bool DatabaseRAM::CreateNewsGroup(string name)
     // Find article
     bool found = NewsGroupExists(name);
 
-    if (found) cout << "Found newsgroup[" << name << "] already!" << endl;
-    else cout << "Couldn't find newsgroup" << endl;
-
     // Return false if found
     if (found) return false;
 
@@ -36,12 +33,8 @@ bool DatabaseRAM::CreateNewsGroup(string name)
     NewsGroup ng(name);
     newsgroups->insert(make_pair(++DatabaseRAM::ID, ng));
 
-    MapNewsGroup::iterator it = newsgroups->find(DatabaseRAM::ID);
-
-    if (it != newsgroups->end())
-        cout << "NewsGroup created successfully: " << it->second.GetName() << endl;
-
     result = true;
+    cout << "\tCreated list of NewsGroups successfully ..." << endl;
     return result;
 }
 bool DatabaseRAM::DeleteNewsGroup(int ngID)
@@ -52,28 +45,33 @@ bool DatabaseRAM::DeleteNewsGroup(int ngID)
     {
         it->second.Delete();
         deletedGroups++;
-
+        cout << "\tDeleted NewsGroup successfully ..." << endl;
         return true;
     }
+    cerr << "\tCould not delete NewsGroup ..." << endl;
     return false;
 }
 
 bool DatabaseRAM::NewsGroupExists(int ngID)
 {
     MapNewsGroup::iterator it = newsgroups->find(ngID);
+    if (it != newsgroups->end()) cout << "\tNewsGroup exists ..." << endl;
+    else cerr << "\tNewsGroup could not be found ..." << endl;
     return it != newsgroups->end();
 }
 
 bool DatabaseRAM::NewsGroupExists(string title)
 {
     MapNewsGroup::iterator it;
-    cout << "NewsGroup.size("<<newsgroups->size() <<")" << endl;
     for (it = newsgroups->begin(); it != newsgroups->end(); ++it)
     {
-        cout << "\tNG["<<it->first<<"]:" << it->second.GetName() << endl;
         if (it->second.GetName().compare(title) == 0)
+        {
+            cout << "\tNewsGroup exists ..." << endl;   
             return true;
+        }
     }
+    cerr << "\tNewsGroup could not be found ..." << endl;
     return false;
 }
 
@@ -83,6 +81,7 @@ MapArticle *DatabaseRAM::ListArticles(int ngID)
 
     if (ngIt != newsgroups->end())
     {
+        cout << "\tCreated list of Articles successfully ..." << endl;
         return ngIt->second.ListArticles();
     }
 
@@ -107,8 +106,9 @@ bool DatabaseRAM::CreateArticle(int ngID, string title, string author, string te
         // Create if not found
         it->second.CreateArticle(title, author, text);
         result = true;
+        cout << "\tArticle created successfully ..." << endl;
     }
-
+    cerr << "\tCould not create Article ..." << endl;
     return result;
 }
 bool DatabaseRAM::DeleteArticle(int ngID, int aID)
@@ -120,8 +120,9 @@ bool DatabaseRAM::DeleteArticle(int ngID, int aID)
     {
         it->second.DeleteArticle(aID);
         result = true;
+        cout << "\tArticle deleted successfully ..." << endl;
     }
-
+    cerr << "\tCould not delete Article ..." << endl;
     return result;
 }
 
@@ -134,9 +135,12 @@ Article const *DatabaseRAM::GetArticle(int ngID, int aID)
         if (it->second.ArticleExists(aID))
         {
             Article const *article = it->second.GetArticle(aID);
+            cout << "\tArticle retrieved successfully ..." << endl;
             return article;
         }
     }
+
+    cerr << "\tCould not retrieve Article ..." << endl;
 
     // Could not find article.
     return 0;
@@ -148,10 +152,10 @@ bool DatabaseRAM::ArticleExists(int ngID, int aID)
 
     if (it != newsgroups->end())
     {
-
+        cout << "\tArticle exists ..." << endl;
         return it->second.ArticleExists(aID);
     }
-
+    cerr << "\tArticle could not be found ..." << endl;
     return false;
 }
 
@@ -168,6 +172,7 @@ size_t DatabaseRAM::NonDeletedNewsGroupCount()
             ++count;
         }
     }
+    cout << "\tNondeleted NewsGroup Count: " << count << " ..." << endl;
     return count;
 }
 
@@ -177,10 +182,12 @@ size_t DatabaseRAM::NonDeletedArticleCount(int ngID)
 
     if (it != newsgroups->end())
     {
+        cout << "\tNondeleted Article Count: " << it->second.NonDeletedArticleCount() << " ..." << endl;
         return it->second.NonDeletedArticleCount();
     }
     else
     {
+        cout << "\tNondeleted Article Count: 0 ..." << endl;
         return 0;
     }
 }
