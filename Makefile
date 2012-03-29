@@ -26,7 +26,7 @@ PROGS		= usenetserver
 all: libclientserver.a memserver
 
 memserver: libclientserver.a libsqlite3.a UseNetServer.o MessageHandler.o DatabaseRAM.o Article.o NewsGroup.o server.o DatabaseDB.o
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(LDLIBS) UseNetServer.cc MessageHandler.cc DatabaseRAM.cc Article.cc NewsGroup.cc server.cc connection.cc DatabaseDB.cc
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(LDLIBS) UseNetServer.cc MessageHandler.cc DatabaseRAM.cc Article.cc NewsGroup.cc server.cc connection.cc DatabaseDB.cc -o usenetserver
 
 sqlite3.o: sqlite/sqlite3.c sqlite/sqlite3.h
 	gcc -c -o sqlite3.o sqlite/sqlite3.c
@@ -46,9 +46,11 @@ libclientserver.a: connection.o server.o
 
 clean:
 	$(RM) *.o
+	$(RM) usenetserver
+	$(RM) usenet.sqlite
 
 cleaner: clean
-	$(RM) libclientserver.a
+	$(RM) libclientserver.a libsqlite3.a
 
 %.d: %.cc
 	@set -e; rm -f $@; \
