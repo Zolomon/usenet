@@ -18,21 +18,18 @@ LDLIBS 		= -lclientserver -lsqlite3
 
 SRC	= $(wildcard *.cc)
 
-# Payloads
-PROGS		= usenetserver 
-
 .PHONY: all clean cleaner
 
 all: libclientserver.a memserver client
 
 memserver: libclientserver.a libsqlite3.a UseNetServer.o MessageHandler.o DatabaseRAM.o Article.o NewsGroup.o server.o DatabaseDB.o
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(LDLIBS) UseNetServer.cc MessageHandler.cc DatabaseRAM.cc Article.cc NewsGroup.cc server.cc connection.cc DatabaseDB.cc -o usenetserver
+	$(CXX) $(CXXFLAGS) UseNetServer.cc MessageHandler.cc DatabaseRAM.cc Article.cc NewsGroup.cc server.cc connection.cc DatabaseDB.cc -o usenetserver $(LDFLAGS) $(LDLIBS)
 
 sqlite3.o: sqlite/sqlite3.c sqlite/sqlite3.h
 	gcc -c -o sqlite3.o sqlite/sqlite3.c
 
 client: UseNetClient.o MessageHandler.o protocol.h connection.o
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(LDLIBS) -o client UseNetClient.cc MessageHandler.cc connection.cc
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(LDLIBS) -o usenetclient UseNetClient.cc MessageHandler.cc connection.cc
 
 # Create the library; ranlib is for Darwin and maybe other systems.
 # Doesn't seem to do any damage on other systems.
@@ -48,9 +45,7 @@ libclientserver.a: connection.o server.o
 	ranlib libclientserver.a
 
 clean:
-	$(RM) *.o
-	$(RM) usenetserver
-	$(RM) usenet.sqlite
+	$(RM) *.o usenetserver usenetclient usenet.sqlite
 
 cleaner: clean
 	$(RM) libclientserver.a libsqlite3.a
