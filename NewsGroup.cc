@@ -1,48 +1,93 @@
 #include "NewsGroup.h"
 #include <algorithm>
+#include <utility>
+#include <sstream>
+
+using namespace std;
 
 namespace usenet
 {
-vector<Article> NewsGroup::ListArticles()
+typedef map<int, Article> MapArticle;
+
+MapArticle* NewsGroup::ListArticles()
 {
     return articles;
 }
 
 void NewsGroup::CreateArticle(string title, string author, string text)
 {
-    articles.push_back(Article(title, author, text));
+    articles->insert(make_pair(++NewsGroup::articleID, Article(title, author, text)));
+    
+    MapArticle::iterator it = articles->find(NewsGroup::articleID);
 }
 
 bool NewsGroup::DeleteArticle(int aID)
 {
-    vector<Article>::size_type idx = static_cast<vector<Article>::size_type>(aID);
-    if (idx > articles.size() || idx == 0 || !ArticleExists(aID))
+    if (!ArticleExists(aID))
         return false;
 
-    articles[aID].Delete();
-    deletedArticles++;
-    return articles[aID].IsDeleted();
+    MapArticle::iterator it = articles->find(aID);
+
+    bool deleted = false;
+    if (it != articles->end() && !it->second.IsDeleted())
+    {
+
+        it->second.Delete();
+        deletedArticles++;
+        deleted = true;
+    }
+    return deleted;
 }
 
-Article * NewsGroup::GetArticle(int aID)
+Article const *NewsGroup::GetArticle(int aID)
 {
-    Article *result = 0;
+    Article const *doesNotExist = 0;
     if (ArticleExists(aID))
-        result = &articles[static_cast<vector<Article>::size_type>(aID)];
+    {
+        MapArticle::iterator it = articles->find(aID);
+        if (it != articles->end()) return &it->second;
+    }
 
-    return result;
+    return doesNotExist;
 }
 
-bool NewsGroup::ArticleExists(int aID) {
-    return  static_cast<vector<Article>::size_type>(aID) < articles.size() &&
-            !articles[static_cast<vector<Article>::size_type>(aID)].IsDeleted();
+bool NewsGroup::ArticleExists(int aID)
+{
+    MapArticle::iterator it = articles->find(aID);
+    
+    return it != articles->end() && !it->second.IsDeleted();
 }
 
-bool NewsGroup::FindArticle(string title) const {
-    vector<Article>::const_iterator it = find_if(
-        articles.begin(), 
-        articles.end(), 
-        bind2nd(FindArticleByName(), title));
-    return it != articles.end();
+size_t NewsGroup::NonDeletedArticleCount() {
+    MapArticle::iterator it;
+    size_t count = 0;
+    for (it = articles->begin(); it != articles->end(); ++it) {
+        if (!it->second.IsDeleted())
+            ++count;
+    }
+    return count;
+}
+
+string NewsGroup::ToString() {
+    stringstream ss;
+
+    MapArticle::iterator it;
+
+    ss << "NewsGroup: [" << name.substr(0, 10) <<"]:" << (isDeleted ? "deleted" : "") << endl;
+    for(it = articles->begin(); it != articles->end(); ++it) {
+        ss << "\t" << it->first <<":" << it->second.ToString() << endl;
+    }
+    return ss.str();
+} 
+
+bool NewsGroup::FindArticle(string title) const
+{
+    MapArticle::iterator it;
+    for (it = articles->begin(); it != articles->end(); ++it) {
+        if (it->second.GetTitle() == title) 
+            return true;
+    }
+
+    return false;
 }
 }

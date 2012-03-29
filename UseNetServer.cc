@@ -4,7 +4,7 @@
 #include "MessageHandler.h"
 #include "IDatabase.h"
 #include "DatabaseRAM.h"
-//#include "DatabaseDB.h"
+#include "DatabaseDB.h"
 #include "protocol.h"
 
 #include <cstdlib>
@@ -16,6 +16,9 @@ using namespace client_server;
 using namespace usenet;
 using protocol::Protocol;
 
+typedef map<int, Article> MapArticle;
+typedef map<int, NewsGroup> MapNewsGroup;
+
 void HandleListNewsGroups(MessageHandler &mh, IDatabase *db)
 {
     int cmdEnd = mh.recvCode();
@@ -24,17 +27,24 @@ void HandleListNewsGroups(MessageHandler &mh, IDatabase *db)
         cerr << "Malformed command: " << cmdEnd << ", expected: " << Protocol::COM_END << endl;
     }
 
-    cout << "Listing all NewsGroups..." << endl;
     mh.sendCode(Protocol::ANS_LIST_NG);
 
-    vector<NewsGroup> ng = db->ListNewsGroups();
-    mh.sendIntParameter(db->NewsGroupCount());
-    for (std::vector<NewsGroup>::size_type i = 0; i != ng.size(); ++i)
+    MapNewsGroup *ng = db->ListNewsGroups();
+
+    int nds = db->NonDeletedNewsGroupCount();
+    mh.sendIntParameter(nds);
+
+    if (ng->size() > 0)
     {
-        if (!ng[i].IsDeleted())
+        MapNewsGroup::iterator it;
+
+        for (it = ng->begin(); it != ng->end(); ++it)
         {
-            mh.sendIntParameter(i);
-            mh.sendStringParameter(ng[i].GetName());
+            if (!it->second.IsDeleted())
+            {
+                mh.sendIntParameter(it->first);
+                mh.sendStringParameter(it->second.GetName());
+            }
         }
     }
 
@@ -52,8 +62,9 @@ void HandleCreateNewsGroup(MessageHandler &mh, IDatabase *db)
     }
 
     mh.sendCode(Protocol::ANS_CREATE_NG);
+    bool newsGroupCreated = db->CreateNewsGroup(newsGroupName);
 
-    if (db->CreateNewsGroup(newsGroupName))
+    if (newsGroupCreated)
     {
         mh.sendCode(Protocol::ANS_ACK);
     }
@@ -94,8 +105,6 @@ void HandleDeleteNewsGroup(MessageHandler &mh, IDatabase *db)
 void HandleListArticles(MessageHandler &mh, IDatabase *db)
 {
     int ngID = mh.recvIntParameter();
-    cout << "Listing Articles for NewsGroup[" << ngID << "]" << endl;
-
     int cmdEnd = mh.recvCode();
     if (cmdEnd != Protocol::COM_END)
     {
@@ -106,15 +115,18 @@ void HandleListArticles(MessageHandler &mh, IDatabase *db)
 
     if (db->NewsGroupExists(ngID))
     {
-        vector<Article> result = db->ListArticles(ngID);
+        MapArticle *result = db->ListArticles(ngID);
+
         mh.sendCode(Protocol::ANS_ACK);
-        mh.sendIntParameter(db->ArticleCount(ngID));
-        for (vector<Article>::size_type i = 0; i != result.size(); ++i)
+        mh.sendIntParameter(db->NonDeletedArticleCount(ngID));
+
+        MapArticle::iterator it;
+        for (it = result->begin(); it != result->end(); ++it)
         {
-            if (!result[i].IsDeleted())
+            if (!it->second.IsDeleted())
             {
-                mh.sendIntParameter(static_cast<int>(i) + 1);
-                mh.sendStringParameter(result[i].GetTitle());
+                mh.sendIntParameter(it->first + 1);
+                mh.sendStringParameter(it->second.GetTitle());
             }
         }
     }
@@ -158,8 +170,7 @@ void HandleCreateArticle(MessageHandler &mh, IDatabase *db)
 void HandleDeleteArticle(MessageHandler &mh, IDatabase *db)
 {
     int ngID = mh.recvIntParameter();
-    int aID = mh.recvIntParameter();
-    cout << "Deleting NewsGroup["<<ngID<<"].Article["<<aID<<"]"<<endl;
+    int aID = mh.recvIntParameter() - 1;
 
     int cmdEnd = mh.recvCode();
     if (cmdEnd != Protocol::COM_END)
@@ -170,27 +181,19 @@ void HandleDeleteArticle(MessageHandler &mh, IDatabase *db)
     mh.sendCode(Protocol::ANS_DELETE_ART);
     if (db->NewsGroupExists(ngID))
     {
-        cout << "\tNewsGroup exists ..." << endl;
-        cout << "\tArticle Count: " << db->ArticleCount(ngID) << endl;
-
-        //cout << "Article["<<ngID<<"]["<<aID<<"]: " << db->GetArticle(ngID, aID)->GetTitle() << endl;
-
         if (db->ArticleExists(ngID, aID))
         {
-            cout << "\t\tArticle exists ..." << endl;
             db->DeleteArticle(ngID, aID);
             mh.sendCode(Protocol::ANS_ACK);
         }
         else
         {
-            cout << ">>> \t\tArticle DOES NOT EXIST ..." << endl;
             mh.sendCode(Protocol::ANS_NAK);
             mh.sendCode(Protocol::ERR_ART_DOES_NOT_EXIST);
         }
     }
     else
     {
-        cout << ">>> \tNewsGroup DOES NOT EXIST ..." << endl;
         mh.sendCode(Protocol::ANS_NAK);
         mh.sendCode(Protocol::ERR_NG_DOES_NOT_EXIST);
     }
@@ -232,18 +235,18 @@ void HandleGetArticle(MessageHandler &mh, IDatabase *db)
         {
             mh.sendCode(Protocol::ERR_ART_DOES_NOT_EXIST);
         }
-        else
-        {
-            cerr << "Could not delete article." << endl;
-            exit(1);
-        }
     }
 
     mh.sendCode(Protocol::ANS_END);
 }
 
+int DatabaseRAM::ID = 1;
+int NewsGroup::articleID = 1;
+
 int main(int argc, const char *argv[])
 {
+
+
     if (argc > 3 || argc == 1)
     {
         cerr << "Usage: UseNetServer port [-m|-db]" << endl;
@@ -256,30 +259,16 @@ int main(int argc, const char *argv[])
     if (argc == 3)
     {
         string dbOption = argv[2];
-        if (dbOption == "-m" )
+
+        if (dbOption.compare("-m") == 0 )
         {
             db = new DatabaseRAM();
-            // db->CreateNewsGroup("java.google.com");
-            // db->CreateNewsGroup("python.google.com");
-            // db->CreateNewsGroup("c++.google.com");
-            // db->CreateNewsGroup("c.google.com");
-            // db->CreateNewsGroup("haskell.google.com");
-            // db->CreateNewsGroup("ruby.google.com");
-            // db->CreateNewsGroup("scheme.google.com");
-            // db->CreateArticle(0, "Java1", "Zolomon", "Java 101");
-            // db->CreateArticle(0, "Java1", "Zolomon", "Java 101.1");
-            // db->CreateArticle(0, "Java2", "Zolomon", "Java 102");
-            // db->CreateArticle(0, "Java3", "Zolomon", "Java 103");
-            // db->CreateArticle(0, "Java4", "Zolomon", "Java 104");
-            // db->CreateArticle(1, "Python1", "Zolomon", "Python 101");
-            // db->CreateArticle(1, "Python2", "Zolomon", "Python 102");
-            // db->CreateArticle(1, "Python3", "Zolomon", "Python 103");
-            // db->CreateArticle(1, "Python4", "Zolomon", "Python 104");
-            // db->CreateArticle(1, "Python5", "Zolomon", "Python 105");
+            cout << "RAM database created" << endl;
         }
-        else if (dbOption == "-db")
+        else if (dbOption.compare("-db") == 0)
         {
-            //db = new DatabaseDB();
+            db = new DatabaseDB();
+            cout << "DB database created" << endl;
         }
         else
         {
@@ -293,6 +282,7 @@ int main(int argc, const char *argv[])
     {
         // Default option
         db = new DatabaseRAM();
+        cout << "Default RAM database created" << endl;
     }
 
     Server server(atoi(argv[1]));
@@ -317,36 +307,43 @@ int main(int argc, const char *argv[])
                     {
                     case Protocol::COM_LIST_NG:
                     {
+                        cout << "########### HandleListNewsGroups ##########" << endl;
                         HandleListNewsGroups(mh, db);
                     }
                     break;
                     case Protocol::COM_CREATE_NG:
                     {
+                        cout << "########### HandleCreateNewsGroup ##########" << endl;
                         HandleCreateNewsGroup(mh, db);
                     }
                     break;
                     case Protocol::COM_DELETE_NG:
                     {
+                        cout << "########### HandleDeleteNewsGroup ##########" << endl;
                         HandleDeleteNewsGroup(mh, db);
                     }
                     break;
                     case Protocol::COM_LIST_ART:
                     {
+                        cout << "########### HandleListArticles ##########" << endl;
                         HandleListArticles(mh, db);
                     }
                     break;
                     case Protocol::COM_CREATE_ART:
                     {
+                        cout << "########### HandleCreateArticle ##########" << endl;
                         HandleCreateArticle(mh, db);
                     }
                     break;
                     case Protocol::COM_DELETE_ART:
                     {
+                        cout << "########### HandleDeleteArticle ##########" << endl;
                         HandleDeleteArticle(mh, db);
                     }
                     break;
                     case Protocol::COM_GET_ART:
                     {
+                        cout << "########### HandleGetArticle ###########" << endl;
                         HandleGetArticle(mh, db);
                     }
                     break;

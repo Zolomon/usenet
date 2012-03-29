@@ -9,32 +9,31 @@ namespace usenet
 class DatabaseRAM : public IDatabase
 {
 public:
-	vector<NewsGroup> 			ListNewsGroups();
-	bool 						CreateNewsGroup(string title);
-	void 						DeleteNewsGroup(int ngID);
-	bool						NewsGroupExists(int ngID);
+	typedef map<int, NewsGroup> MapNewsGroup;
+	typedef map<int, Article> MapArticle;
 
-	vector<Article>				ListArticles(int ngID);
-	bool						CreateArticle(int ngID, string title, string author, string text);
-	bool						DeleteArticle(int ngID, int aID);
-	Article * 					GetArticle(int ngID, int aID);
-	bool 						ArticleExists(int ngID, int aID);
-	size_t 						NewsGroupCount() { return newsgroups.size()-deletedGroups; }
-	size_t 						ArticleCount(int ngID) { return newsgroups[static_cast<vector<Article>::size_type>(ngID)].ArticleCount(); }
+	DatabaseRAM() { newsgroups = new MapNewsGroup(); deletedGroups = 0;}
+
+	MapNewsGroup* ListNewsGroups();
+	bool CreateNewsGroup(string title);
+	bool DeleteNewsGroup(int ngID);
+	bool NewsGroupExists(int ngID);
+	bool NewsGroupExists(string title);
+	size_t NonDeletedNewsGroupCount(); 
+
+	MapArticle* ListArticles(int ngID);
+	bool CreateArticle(int ngID, string title, string author, string text);
+	bool DeleteArticle(int ngID, int aID);
+	Article const * GetArticle(int ngID, int aID);
+	bool ArticleExists(int ngID, int aID);
+	size_t NonDeletedArticleCount(int ngID);
+
+	string ToString();
+
 private:
-	bool 					FindNewsGroup(string name) const;
-	vector<NewsGroup> 		newsgroups;
-	size_t 					deletedGroups;
-};
-struct FindNewsGroupByName : public binary_function<NewsGroup, string, bool>
-{
-	bool operator() (const NewsGroup &newsgroup, string name) const
-	{
-		bool found = name == newsgroup.GetName();
-		if (found) cout << "NewsGroup("<<name<<") found!" << endl;
-		else cout << "NewsGroup("<<name<<") NOT found!" << endl;
-		return found;
-	}
+	MapNewsGroup* newsgroups;
+	static int ID;
+	size_t deletedGroups;
 };
 }
 
