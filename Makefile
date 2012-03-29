@@ -11,7 +11,7 @@ CXXFLAGS	+= -Wmissing-braces -Wparentheses -Wno-long-long
 #CXXFLAGS	+= -Wold-style-cast
 
 # Define linker flags
-LDFLAGS 	= -ggdb -L.
+LDFLAGS 	= -ggdb -L. -ldl -lpthread
 
 # Libraries: -lclientserver is always necessary
 LDLIBS 		= -lclientserver -lsqlite3
