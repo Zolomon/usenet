@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <cstring>
+#include "sqlite/sqlite3.h"
 
 using namespace std;
 
