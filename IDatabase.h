@@ -22,6 +22,7 @@ public:
     virtual bool CreateNewsGroup(string title) = 0;
     virtual bool DeleteNewsGroup(int ngID) = 0;
     virtual bool NewsGroupExists(int ngID) = 0;
+    virtual bool NewsGroupExists(string title) = 0;
     virtual size_t NonDeletedNewsGroupCount() = 0;
     
     virtual MapArticle* ListArticles(int ngID) = 0;

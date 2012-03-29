@@ -19,7 +19,6 @@ void NewsGroup::CreateArticle(string title, string author, string text)
     articles->insert(make_pair(++NewsGroup::articleID, Article(title, author, text)));
     
     MapArticle::iterator it = articles->find(NewsGroup::articleID);
-    if (it != articles->end()) cout << "ART CREATION SUCCESSFUL ..." << endl;
 }
 
 bool NewsGroup::DeleteArticle(int aID)
@@ -32,14 +31,11 @@ bool NewsGroup::DeleteArticle(int aID)
     bool deleted = false;
     if (it != articles->end() && !it->second.IsDeleted())
     {
-        cout << "\t\tDeleting Article[" << aID << "]" << endl;
+
         it->second.Delete();
         deletedArticles++;
         deleted = true;
     }
-
-    if (deletedArticles >= articles->size()) cout << "\t\t\tArticles->Size(" << articles->size() << ") vs deletedArticles = " << deletedArticles << endl;
-
     return deleted;
 }
 
@@ -58,7 +54,7 @@ Article const *NewsGroup::GetArticle(int aID)
 bool NewsGroup::ArticleExists(int aID)
 {
     MapArticle::iterator it = articles->find(aID);
-
+    
     return it != articles->end() && !it->second.IsDeleted();
 }
 

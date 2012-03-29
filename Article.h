@@ -16,15 +16,18 @@ public:
     Article(string title, string author, string text) :
         title(title), author(author), text(text), isDeleted(false) {}
 
+    Article(string title, string author, string text, bool deleted) :
+        title(title), author(author), text(text), isDeleted(deleted) {}
+
     string GetTitle() const
     {
         return title;
     }
-    string GetAuthor() const 
+    string GetAuthor() const
     {
         return author;
     }
-    string GetText() const 
+    string GetText() const
     {
         return text;
     }
@@ -32,13 +35,15 @@ public:
     {
         isDeleted = true;
     }
-    bool IsDeleted() {
+    bool IsDeleted()
+    {
         return isDeleted;
     }
 
-    string ToString() {
-        stringstream ss; 
-        ss << "[" << title << ", " << author << ", " << text.substr(0, 10) << "...]:"<< (isDeleted ? "deleted" : "");
+    string ToString()
+    {
+        stringstream ss;
+        ss << "[" << title << ", " << author << ", " << text.substr(0, 10) << "...]:" << (isDeleted ? "deleted" : "");
         return ss.str();
     }
 

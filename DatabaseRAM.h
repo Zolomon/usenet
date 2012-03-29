@@ -18,6 +18,7 @@ public:
 	bool CreateNewsGroup(string title);
 	bool DeleteNewsGroup(int ngID);
 	bool NewsGroupExists(int ngID);
+	bool NewsGroupExists(string title);
 	size_t NonDeletedNewsGroupCount(); 
 
 	MapArticle* ListArticles(int ngID);
@@ -30,21 +31,9 @@ public:
 	string ToString();
 
 private:
-	bool FindNewsGroup(string name) const;
 	MapNewsGroup* newsgroups;
-	static int ID; // TODO: FULHACK, FIXA
+	static int ID;
 	size_t deletedGroups;
-};
-
-struct FindNewsGroupByName : public binary_function<NewsGroup, string, bool>
-{
-	bool operator() (const NewsGroup &newsgroup, string name) const
-	{
-		bool found = name == newsgroup.GetName();
-		if (found) cout << "NewsGroup("<<name<<") found!" << endl;
-		else cout << "NewsGroup("<<name<<") NOT found!" << endl;
-		return found;
-	}
 };
 }
 

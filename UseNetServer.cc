@@ -4,7 +4,7 @@
 #include "MessageHandler.h"
 #include "IDatabase.h"
 #include "DatabaseRAM.h"
-//#include "DatabaseDB.h"
+#include "DatabaseDB.h"
 #include "protocol.h"
 
 #include <cstdlib>
@@ -27,27 +27,33 @@ void HandleListNewsGroups(MessageHandler &mh, IDatabase *db)
         cerr << "Malformed command: " << cmdEnd << ", expected: " << Protocol::COM_END << endl;
     }
 
-    cout << "Listing all NewsGroups..." << endl;
     mh.sendCode(Protocol::ANS_LIST_NG);
 
-    MapNewsGroup* ng = db->ListNewsGroups();
-    if (ng == 0) cout << "Could not fetch newsgroup..." << endl;
-    cout << "NG size: " << ng->size() << endl;
-    cout << ng->size() << " " << db->NonDeletedNewsGroupCount() << endl;
-    mh.sendIntParameter(db->NonDeletedNewsGroupCount());
+    MapNewsGroup *ng = db->ListNewsGroups();
 
-    MapNewsGroup::iterator it;
+    cout << "Fetched MapNewsGroup[Size: " << ng->size() << "]" << endl;
 
-    for (it = ng->begin(); it != ng->end(); ++it) {
-        if (!it->second.IsDeleted()) {
-            mh.sendIntParameter(it->first);
-            mh.sendStringParameter(it->second.GetName());
+    int nds = db->NonDeletedNewsGroupCount();
+    mh.sendIntParameter(nds);
+
+    cout << "NDS: " << nds << endl;
+
+    if (ng->size() > 0)
+    {
+        MapNewsGroup::iterator it;
+
+        for (it = ng->begin(); it != ng->end(); ++it)
+        {
+            if (!it->second.IsDeleted())
+            {
+                mh.sendIntParameter(it->first);
+                cout << "[" << it->first << "]NG->Name: " << it->second.GetName() << endl;
+                mh.sendStringParameter(it->second.GetName());
+            }
         }
     }
 
     mh.sendCode(Protocol::ANS_END);
-
-    //delete ng;
 }
 
 void HandleCreateNewsGroup(MessageHandler &mh, IDatabase *db)
@@ -61,8 +67,11 @@ void HandleCreateNewsGroup(MessageHandler &mh, IDatabase *db)
     }
 
     mh.sendCode(Protocol::ANS_CREATE_NG);
+    cout << "Before Created: " << db->ToString();
+    bool newsGroupCreated = db->CreateNewsGroup(newsGroupName);
+    cout << "After Created: " << db->ToString();
 
-    if (db->CreateNewsGroup(newsGroupName))
+    if (newsGroupCreated)
     {
         mh.sendCode(Protocol::ANS_ACK);
     }
@@ -103,8 +112,6 @@ void HandleDeleteNewsGroup(MessageHandler &mh, IDatabase *db)
 void HandleListArticles(MessageHandler &mh, IDatabase *db)
 {
     int ngID = mh.recvIntParameter();
-    cout << "Listing Articles for NewsGroup[" << ngID << "]" << endl;
-
     int cmdEnd = mh.recvCode();
     if (cmdEnd != Protocol::COM_END)
     {
@@ -115,22 +122,20 @@ void HandleListArticles(MessageHandler &mh, IDatabase *db)
 
     if (db->NewsGroupExists(ngID))
     {
-        MapArticle* result = db->ListArticles(ngID);
-        
+        MapArticle *result = db->ListArticles(ngID);
+
         mh.sendCode(Protocol::ANS_ACK);
         mh.sendIntParameter(db->NonDeletedArticleCount(ngID));
 
-	cout << "Article["<<ngID<<"].Count: " << db->NonDeletedArticleCount(ngID) << endl;
         MapArticle::iterator it;
-
-        for (it = result->begin(); it != result->end(); ++it) {
-            if (!it->second.IsDeleted()) {
+        for (it = result->begin(); it != result->end(); ++it)
+        {
+            if (!it->second.IsDeleted())
+            {
                 mh.sendIntParameter(it->first + 1);
                 mh.sendStringParameter(it->second.GetTitle());
             }
         }
-
-	//delete result;
     }
     else
     {
@@ -173,7 +178,6 @@ void HandleDeleteArticle(MessageHandler &mh, IDatabase *db)
 {
     int ngID = mh.recvIntParameter();
     int aID = mh.recvIntParameter() - 1;
-    cout << "Deleting NewsGroup["<<ngID<<"].Article["<<aID<<"]"<<endl;
 
     int cmdEnd = mh.recvCode();
     if (cmdEnd != Protocol::COM_END)
@@ -184,36 +188,26 @@ void HandleDeleteArticle(MessageHandler &mh, IDatabase *db)
     mh.sendCode(Protocol::ANS_DELETE_ART);
     if (db->NewsGroupExists(ngID))
     {
-        cout << "\tNewsGroup exists ..." << endl;
-        cout << "\tArticle Count: " << db->NonDeletedArticleCount(ngID) << endl;
-
-        //cout << "Article["<<ngID<<"]["<<aID<<"]: " << db->GetArticle(ngID, aID)->GetTitle() << endl;
-
-        cout << "Prior deletion: " << endl;
-        cout << db->ToString() << endl;
-
+        cout << "NewsGroup Exists" << endl;
         if (db->ArticleExists(ngID, aID))
         {
-            cout << "\t\tArticle exists ..." << endl;
+            cout << "Article Exists" << endl;
             db->DeleteArticle(ngID, aID);
             mh.sendCode(Protocol::ANS_ACK);
         }
         else
         {
-            cout << ">>> \t\tArticle DOES NOT EXIST ..." << endl;
+            cout << "Article Does Not Exist" << endl;
             mh.sendCode(Protocol::ANS_NAK);
             mh.sendCode(Protocol::ERR_ART_DOES_NOT_EXIST);
         }
     }
     else
     {
-        cout << ">>> \tNewsGroup DOES NOT EXIST ..." << endl;
+        cout << "NewsGroup does not exist" << endl;
         mh.sendCode(Protocol::ANS_NAK);
         mh.sendCode(Protocol::ERR_NG_DOES_NOT_EXIST);
     }
-
-    cout << "After deletion: " << endl;
-    cout << db->ToString() << endl;
 
     mh.sendCode(Protocol::ANS_END);
 }
@@ -252,23 +246,18 @@ void HandleGetArticle(MessageHandler &mh, IDatabase *db)
         {
             mh.sendCode(Protocol::ERR_ART_DOES_NOT_EXIST);
         }
-        else
-        {
-            cerr << "Could not delete article." << endl;
-            exit(1);
-        }
     }
 
     mh.sendCode(Protocol::ANS_END);
 }
 
-  int DatabaseRAM::ID = 0;
-  int NewsGroup::articleID = 0;
+int DatabaseRAM::ID = 1;
+int NewsGroup::articleID = 1;
 
 int main(int argc, const char *argv[])
 {
 
-  
+
     if (argc > 3 || argc == 1)
     {
         cerr << "Usage: UseNetServer port [-m|-db]" << endl;
@@ -281,30 +270,21 @@ int main(int argc, const char *argv[])
     if (argc == 3)
     {
         string dbOption = argv[2];
-        if (dbOption == "-m" )
+
+        cout << "dbOption == " << dbOption << endl;
+        cout << "argv0 == " << argv[0] << endl;
+        cout << "argv1 == " << argv[1] << endl;
+        cout << "argv2 == " << argv[2] << endl;
+
+        if (dbOption.compare("-m") == 0 )
         {
             db = new DatabaseRAM();
-            // db->CreateNewsGroup("java.google.com");
-            // db->CreateNewsGroup("python.google.com");
-            // db->CreateNewsGroup("c++.google.com");
-            // db->CreateNewsGroup("c.google.com");
-            // db->CreateNewsGroup("haskell.google.com");
-            // db->CreateNewsGroup("ruby.google.com");
-            // db->CreateNewsGroup("scheme.google.com");
-            // db->CreateArticle(0, "Java1", "Zolomon", "Java 101");
-            // db->CreateArticle(0, "Java1", "Zolomon", "Java 101.1");
-            // db->CreateArticle(0, "Java2", "Zolomon", "Java 102");
-            // db->CreateArticle(0, "Java3", "Zolomon", "Java 103");
-            // db->CreateArticle(0, "Java4", "Zolomon", "Java 104");
-            // db->CreateArticle(1, "Python1", "Zolomon", "Python 101");
-            // db->CreateArticle(1, "Python2", "Zolomon", "Python 102");
-            // db->CreateArticle(1, "Python3", "Zolomon", "Python 103");
-            // db->CreateArticle(1, "Python4", "Zolomon", "Python 104");
-            // db->CreateArticle(1, "Python5", "Zolomon", "Python 105");
+            cout << "RAM database created" << endl;
         }
-        else if (dbOption == "-db")
+        else if (dbOption.compare("-db") == 0)
         {
-            //db = new DatabaseDB();
+            db = new DatabaseDB();
+            cout << "DB database created" << endl;
         }
         else
         {
@@ -318,6 +298,7 @@ int main(int argc, const char *argv[])
     {
         // Default option
         db = new DatabaseRAM();
+        cout << "Default RAM database created" << endl;
     }
 
     Server server(atoi(argv[1]));
@@ -342,42 +323,43 @@ int main(int argc, const char *argv[])
                     {
                     case Protocol::COM_LIST_NG:
                     {
-                        cout << "#####################" << endl;
+                        cout << "########### HandleListNewsGroups ##########" << endl;
                         HandleListNewsGroups(mh, db);
                     }
                     break;
                     case Protocol::COM_CREATE_NG:
                     {
-                        cout << "#####################" << endl;
+                        cout << "########### HandleCreateNewsGroup ##########" << endl;
                         HandleCreateNewsGroup(mh, db);
                     }
                     break;
                     case Protocol::COM_DELETE_NG:
                     {
-                        cout << "#####################" << endl;
+                        cout << "########### HandleDeleteNewsGroup ##########" << endl;
                         HandleDeleteNewsGroup(mh, db);
                     }
                     break;
                     case Protocol::COM_LIST_ART:
                     {
-                        cout << "#####################" << endl;
+                        cout << "########### HandleListArticles ##########" << endl;
                         HandleListArticles(mh, db);
                     }
                     break;
                     case Protocol::COM_CREATE_ART:
                     {
-                        cout << "#####################" << endl;
+                        cout << "########### HandleCreateArticle ##########" << endl;
                         HandleCreateArticle(mh, db);
                     }
                     break;
                     case Protocol::COM_DELETE_ART:
                     {
-                        cout << "#####################" << endl;
+                        cout << "########### HandleDeleteArticle ##########" << endl;
                         HandleDeleteArticle(mh, db);
                     }
                     break;
                     case Protocol::COM_GET_ART:
                     {
+                        cout << "########### HandleGetArticle ###########" << endl;
                         HandleGetArticle(mh, db);
                     }
                     break;
