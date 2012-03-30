@@ -17,14 +17,18 @@ void HandleListNewsGroups(MessageHandler &mh)
   if(ansListNg != Protocol::ANS_LIST_NG) 
     cerr << "Malformed command: " << ansListNg << ", expected: " << Protocol::ANS_LIST_NG << endl;
   int nbr = mh.recvIntParameter();
-  int i = 0;
+  if(nbr <= 0 ) {
+    cout << "No Newsgroups exists yet. Be the first to create one!" << endl;
+    return;
+  } else { 
   cout << "Newsgroup ID: Newsgroup name" << endl;
-  for (i = 0; i < nbr; ++i) {
+  }
+  for (int i = 0; i < nbr; ++i) {
     int ngID = mh.recvIntParameter();
     string name = mh.recvStringParameter();
     cout << ngID << ": " << name << endl;
   }
-
+  cout << "fuuu" << endl;
   int END =  mh.recvCode();
   if(END != Protocol::ANS_END) 
     cerr << "Malformed command: " << END << ", expected: " << Protocol::ANS_END << endl;
@@ -33,9 +37,9 @@ void HandleListNewsGroups(MessageHandler &mh)
 void HandleCreateNewsGroup(MessageHandler &mh)
 {
   mh.sendCode(Protocol::COM_CREATE_NG);
-  cout << "Enter NewsGroup name" << endl;
   string name;
-  cin >> name;
+  cout << "Enter NewsGroup name" << endl;
+  getline(cin,name);
   mh.sendStringParameter(name);
   mh.sendCode(Protocol::COM_END);
   mh.recvCode();
@@ -55,14 +59,14 @@ void HandleCreateNewsGroup(MessageHandler &mh)
 
 void HandleDeleteNewsGroup(MessageHandler &mh) 
 {
+  string temp;
   mh.sendCode(Protocol::COM_DELETE_NG);
-  int ngID;
   cout << "Enter a newsgroup ID:" << endl;
-  cin >> ngID;
+  getline(cin,temp);
+  int ngID = atoi(temp.c_str());
   mh.sendIntParameter(ngID);
   mh.sendCode(Protocol::COM_END);
-  int code;
-  code = mh.recvCode();
+  int code = mh.recvCode();
   if(code != Protocol::ANS_DELETE_NG) {
     cerr << "Malformed command: " << code << ", expected: " << Protocol::ANS_DELETE_NG << endl;
   }
@@ -82,10 +86,11 @@ void HandleDeleteNewsGroup(MessageHandler &mh)
 }
 
 void HandleListArticles(MessageHandler &mh){
+  string temp;
   mh.sendCode(Protocol::COM_LIST_ART);
-  int ngID;
   cout << "Enter a newsgroup ID:" << endl;
-  cin >> ngID;
+  getline(cin,temp);
+  int ngID = atoi(temp.c_str());
   mh.sendIntParameter(ngID);
   mh.sendCode(Protocol::COM_END);
   int code;
@@ -96,10 +101,13 @@ void HandleListArticles(MessageHandler &mh){
   code = mh.recvCode();
   if(code == Protocol::ANS_ACK){
     int nbrArt = mh.recvIntParameter();
-    int i = 0;
-	cout << "Artricle ID: Article name" << endl;
-    for(i = 0; i < nbrArt; ++i){
-	  int artID = mh.recvIntParameter();
+    if(nbrArt <= 0 ) {
+      cout << "This newsgroup contains no articles, be the first to write one!" << endl;
+      return;
+    }
+    cout << "Artricle ID: Article name" << endl;
+    for(int i = 0; i < nbrArt; ++i){
+      int artID = mh.recvIntParameter();
       string artName = mh.recvStringParameter();
       cout << artID << ": " << artName << endl;
     }
@@ -123,20 +131,21 @@ void HandleCreateArticle(MessageHandler &mh){
   string author;
   string text;
   cout << "Enter a newgroup ID:" << endl;
-  cin >> ngID;
+  string tempID;
+  getline(cin, tempID);
+  ngID = atoi(tempID.c_str());
   cout << "Enter a title:" << endl;
-  cin >> title;
+  getline(cin,title);
   cout << "Enter a author name:" << endl;
-  cin >> author;
+  getline(cin, author);
   cout << "Enter article text:" << endl;
-  cin >> text;
-	
+  getline(cin, text);
+
   mh.sendIntParameter(ngID);
   mh.sendStringParameter(title);
   mh.sendStringParameter(author);
   mh.sendStringParameter(text);
   mh.sendCode(Protocol::COM_END);
-	
   int code = mh.recvCode();
   if(code != Protocol::ANS_CREATE_ART){
     cerr << "Malformed command: " << code << ", expected: " << Protocol::ANS_CREATE_ART << endl;
@@ -157,17 +166,18 @@ void HandleCreateArticle(MessageHandler &mh){
 }	
 
 void HandleDeleteArticle(MessageHandler &mh){
+  string temp;
   mh.sendCode(Protocol::COM_DELETE_ART);
-  int ngID;
-  int artID;
   cout << "Enter a newsgroup ID:" << endl;
-  cin >> ngID;
+  getline(cin,temp);
+  int ngID = atoi(temp.c_str());
   cout << "Enter an article ID:" << endl;
-  cin >> artID;
+  getline(cin,temp);
+  int artID = atoi(temp.c_str());
   mh.sendIntParameter(ngID);
   mh.sendIntParameter(artID);
   mh.sendCode(Protocol::COM_END);
-	
+
   int code = mh.recvCode();
   if(code != Protocol::ANS_DELETE_ART){
     cerr << "Malformed command: " << code << ", expected: " << Protocol::ANS_DELETE_ART << endl;
@@ -190,20 +200,21 @@ void HandleDeleteArticle(MessageHandler &mh){
 }
 
 void HandleGetArticle(MessageHandler &mh){
+  string temp;
   mh.sendCode(Protocol::COM_GET_ART);
-  int ngID;
-  int artID;
   cout << "Enter a newsgroup ID:" << endl;
-  cin >> ngID;
+  getline(cin,temp);
+  int ngID = atoi(temp.c_str());
   cout << "Enter an article ID:" << endl;
-  cin >> artID;
+  getline(cin,temp);
+  int artID = atoi(temp.c_str());
   mh.sendIntParameter(ngID);
   mh.sendIntParameter(artID);
   mh.sendCode(Protocol::COM_END);
-	
+
   int code = mh.recvCode();
   if(code != Protocol::ANS_GET_ART){
-    cerr << "Malformed command: " << code << ", expected: " << Protocol::ANS_END << endl;
+    cerr << "Malformed command: " << code << ", expected: " << Protocol::ANS_GET_ART << endl;
   }
   code = mh.recvCode();
   if(code == Protocol::ANS_ACK){	
@@ -222,20 +233,19 @@ void HandleGetArticle(MessageHandler &mh){
     }
   }
   code = mh.recvCode();
-  if(code == Protocol::ANS_END){
+  if(code != Protocol::ANS_END){
     cerr << "Malformed command: " << code << ", expected: " << Protocol::ANS_END << endl;
   }
 }
 
 int main()
 {
-
-  cout << "Enter host name" << endl;
-  string hostname;
-  cin >> hostname;
+  string temp;
+  // cout << "Enter host name" << endl;
+  string hostname = "localhost";
   cout << "Enter port name" << endl;
-  int portname;
-  cin >> portname;
+  getline(cin,temp);
+  int portname = atoi(temp.c_str());
   Connection conn(hostname.c_str(), portname);
   
   if(!conn.isConnected()) {
@@ -246,49 +256,66 @@ int main()
     MessageHandler mh(&conn);
     while(conn.isConnected()) {
       cout << "Enter command" << endl;
+      cout << "1. List newsgroups" << endl;
+      cout << "2. Create newsgroup" << endl;
+      cout << "3. Delete newsgroups" << endl;
+      cout << "4. List articles" << endl;
+      cout << "5. Read article" << endl;     
+      cout << "6. Create article" << endl;
+      cout << "7. Delete article" << endl;
+      cout << "0. Disconnect" << endl;
+     
       int command;
-      cin >> command;
-
+      getline(cin, temp);
+      command = atoi(temp.c_str());
       switch (command) 
 	{
-	case Protocol::COM_LIST_NG:
+	case 1:
 	  {
 	    HandleListNewsGroups(mh);
 	  }
 	  break;
-	case Protocol::COM_CREATE_NG:
+	case 2:
 	  {
 	    HandleCreateNewsGroup(mh);
 	  }
 	  break;
-	case Protocol::COM_DELETE_NG:
+	case 3:
 	  {
 	    HandleDeleteNewsGroup(mh);
 	  }
 	  break;
-	case Protocol::COM_LIST_ART:
+	case 4:
 	  {
 	    HandleListArticles(mh);
 	  }
 	  break;
-	case Protocol::COM_CREATE_ART:
+	case 5:
 	  {
-	    HandleCreateArticle(mh);
+	    HandleGetArticle(mh);
+	   
 	  }
 	  break;
-	case Protocol::COM_DELETE_ART:
+	case 6:
+	  {
+	    HandleCreateArticle(mh);
+	   
+	  }
+	  break;
+	case 7:
 	  {
 	    HandleDeleteArticle(mh);
 	  }
 	  break;
-	case Protocol::COM_GET_ART:
+	case 0:
 	  {
-	    HandleGetArticle(mh);
+	    conn.~Connection();
+	    exit(0);
 	  }
-	  break;
 	default:
 	  {
-	    cerr << "Unexpected command" << endl;
+	    cerr << "Unexpected command: " << command << endl;
+	    conn.~Connection();
 	    exit(1);
 	  }
 	  break;
