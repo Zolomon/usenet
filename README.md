@@ -1,7 +1,9 @@
-### General implementation advice
+### How to run server
 
-* Start by writing the in-memory version of the server. Use the test clients described in
-section 7.1 during development.
-* Then write the client, using your own server.
-* Finally, write the disk version of the server. Your server design should be such that you
-only have to change the part of the server that deals with the database.
+usenetserver portnumber [-m|-db]
+ex: usenetserver 4444 -db 
+
+### How to run client 
+
+usenetclient hostname portnumber
+ex: usenetclient localhost 4444
