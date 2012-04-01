@@ -298,7 +298,7 @@ void HandleGetArticle(MessageHandler &mh)
 int main(int argc, const char *argv[])
 {
     string temp;
-    if (argc > 3 || argc == 1)
+    if (argc != 3)
     {
         cerr << "Usage: UseNetClient hostname portnumber" << endl;
         exit(1);
