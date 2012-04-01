@@ -128,7 +128,7 @@ void HandleListArticles(MessageHandler &mh, IDatabase *db)
         {
             if (!it->second.IsDeleted())
             {
-                mh.sendIntParameter(it->first + 1);
+                mh.sendIntParameter(it->first);
                 mh.sendStringParameter(it->second.GetTitle());
             }
         }
@@ -248,8 +248,8 @@ void HandleGetArticle(MessageHandler &mh, IDatabase *db)
     delete article;
 }
 
-int DatabaseRAM::ID = 1;
-int NewsGroup::articleID = 1;
+int DatabaseRAM::ID = 0;
+int NewsGroup::articleID = 0;
 
 int main(int argc, const char *argv[])
 {

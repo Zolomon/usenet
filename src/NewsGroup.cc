@@ -18,9 +18,9 @@ MapArticle *NewsGroup::ListArticles()
 
 void NewsGroup::CreateArticle(string title, string author, string text)
 {
+    cout << "Creating new Article - ArticleID: " << NewsGroup::articleID;
     articles->insert(make_pair(++NewsGroup::articleID, Article(title, author, text)));
-
-    MapArticle::iterator it = articles->find(NewsGroup::articleID);
+    cout << ", afterwards ArticleID: " << NewsGroup::articleID << endl;
 }
 
 bool NewsGroup::DeleteArticle(int aID)

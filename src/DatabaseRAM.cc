@@ -14,8 +14,9 @@ namespace usenet
 typedef map<int, NewsGroup> MapNewsGroup;
 typedef map<int, Article> MapArticle;
 
-DatabaseRAM::~DatabaseRAM() {
-    delete newsgroups;
+DatabaseRAM::~DatabaseRAM()
+{
+    //delete newsgroups;
 }
 
 MapNewsGroup *DatabaseRAM::ListNewsGroups()
@@ -74,11 +75,11 @@ bool DatabaseRAM::NewsGroupExists(string title)
     {
         if (it->second.GetName().compare(title) == 0)
         {
-            cout << "\tNewsGroup exists ..." << endl;   
+            cout << "\tNewsGroup exists ..." << endl;
             return true;
         }
     }
-    //cerr << "\tNewsGroup could not be found ..." << endl;
+    cerr << "\tNewsGroup could not be found ..." << endl;
     return false;
 }
 
@@ -92,6 +93,8 @@ MapArticle *DatabaseRAM::ListArticles(int ngID)
         return ngIt->second.ListArticles();
     }
 
+    cerr << "\tNewsGroup could not be found ..." << endl;
+    
     // If not found, return NULL-pointer...
     return 0;
 }
@@ -115,7 +118,7 @@ bool DatabaseRAM::CreateArticle(int ngID, string title, string author, string te
         result = true;
         cout << "\tArticle created successfully ..." << endl;
     }
-    //cerr << "\tCould not create Article ..." << endl;
+    cerr << "\tCould not create Article ..." << endl;
     return result;
 }
 bool DatabaseRAM::DeleteArticle(int ngID, int aID)

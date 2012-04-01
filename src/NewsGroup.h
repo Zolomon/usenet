@@ -23,21 +23,21 @@ public:
 
     NewsGroup(string name, bool isDeleted) : name(name), isDeleted(isDeleted)
     {
-        articleID = 0;
+        //articleID = 0;
         articles = new MapArticle();
         deletedArticles = 0;
     }
 
     NewsGroup(string name) : name(name), isDeleted(false)
     {
-        articleID = 0;
+        //articleID = 0;
         articles = new MapArticle();
         deletedArticles = 0;
     }
 
     ~NewsGroup()
     {
-        delete articles;
+        //delete articles;
     }
 
     MapArticle *ListArticles();
