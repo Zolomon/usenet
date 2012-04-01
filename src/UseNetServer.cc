@@ -374,12 +374,9 @@ int main(int argc, const char *argv[])
         else
         {
             server.registerConnection(new Connection);
-            //cout << "New client connects" << endl;
+            cout << "New client connects" << endl;
         }
     }
-
-    cout << flush;
-    cerr << flush;
 
     delete db;
 }
