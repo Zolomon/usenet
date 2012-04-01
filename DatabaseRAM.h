@@ -13,7 +13,8 @@ public:
 	typedef map<int, Article> MapArticle;
 
 	DatabaseRAM() { newsgroups = new MapNewsGroup(); deletedGroups = 0;}
-
+	~DatabaseRAM(); 
+	
 	MapNewsGroup* ListNewsGroups();
 	bool CreateNewsGroup(string title);
 	bool DeleteNewsGroup(int ngID);

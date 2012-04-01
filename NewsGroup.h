@@ -21,7 +21,8 @@ class NewsGroup
 public:
     typedef map<int, Article> MapArticle;
 
-    NewsGroup(string name, bool isDeleted) : name(name), isDeleted(isDeleted) {
+    NewsGroup(string name, bool isDeleted) : name(name), isDeleted(isDeleted)
+    {
         articleID = 0;
         articles = new MapArticle();
         deletedArticles = 0;
@@ -32,6 +33,11 @@ public:
         articleID = 0;
         articles = new MapArticle();
         deletedArticles = 0;
+    }
+
+    ~NewsGroup()
+    {
+        delete articles;
     }
 
     MapArticle *ListArticles();

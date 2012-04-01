@@ -18,6 +18,8 @@ public:
 	typedef map<int, NewsGroup> MapNewsGroup;
 	typedef map<int, Article> MapArticle;
 
+    virtual ~IDatabase() {}
+
     virtual MapNewsGroup* ListNewsGroups() = 0;
     virtual bool CreateNewsGroup(string title) = 0;
     virtual bool DeleteNewsGroup(int ngID) = 0;

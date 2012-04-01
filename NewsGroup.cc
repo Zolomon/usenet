@@ -9,15 +9,17 @@ namespace usenet
 {
 typedef map<int, Article> MapArticle;
 
-MapArticle* NewsGroup::ListArticles()
+MapArticle *NewsGroup::ListArticles()
 {
-    return articles;
+    MapArticle *amap = new MapArticle(articles->begin(), 
+                                      articles->end());
+    return amap;
 }
 
 void NewsGroup::CreateArticle(string title, string author, string text)
 {
     articles->insert(make_pair(++NewsGroup::articleID, Article(title, author, text)));
-    
+
     MapArticle::iterator it = articles->find(NewsGroup::articleID);
 }
 
@@ -45,7 +47,10 @@ Article const *NewsGroup::GetArticle(int aID)
     if (ArticleExists(aID))
     {
         MapArticle::iterator it = articles->find(aID);
-        if (it != articles->end()) return &it->second;
+        if (it != articles->end()) 
+            return doesNotExist = new Article(it->second.GetTitle(),
+                it->second.GetAuthor(),
+                it->second.GetText());
     }
 
     return doesNotExist;
@@ -54,37 +59,42 @@ Article const *NewsGroup::GetArticle(int aID)
 bool NewsGroup::ArticleExists(int aID)
 {
     MapArticle::iterator it = articles->find(aID);
-    
+
     return it != articles->end() && !it->second.IsDeleted();
 }
 
-size_t NewsGroup::NonDeletedArticleCount() {
+size_t NewsGroup::NonDeletedArticleCount()
+{
     MapArticle::iterator it;
     size_t count = 0;
-    for (it = articles->begin(); it != articles->end(); ++it) {
+    for (it = articles->begin(); it != articles->end(); ++it)
+    {
         if (!it->second.IsDeleted())
             ++count;
     }
     return count;
 }
 
-string NewsGroup::ToString() {
+string NewsGroup::ToString()
+{
     stringstream ss;
 
     MapArticle::iterator it;
 
-    ss << "NewsGroup: [" << name.substr(0, 10) <<"]:" << (isDeleted ? "deleted" : "") << endl;
-    for(it = articles->begin(); it != articles->end(); ++it) {
-        ss << "\t" << it->first <<":" << it->second.ToString() << endl;
+    ss << "NewsGroup: [" << name.substr(0, 10) << "]:" << (isDeleted ? "deleted" : "") << endl;
+    for (it = articles->begin(); it != articles->end(); ++it)
+    {
+        ss << "\t" << it->first << ":" << it->second.ToString() << endl;
     }
     return ss.str();
-} 
+}
 
 bool NewsGroup::FindArticle(string title) const
 {
     MapArticle::iterator it;
-    for (it = articles->begin(); it != articles->end(); ++it) {
-        if (it->second.GetTitle() == title) 
+    for (it = articles->begin(); it != articles->end(); ++it)
+    {
+        if (it->second.GetTitle() == title)
             return true;
     }
 

@@ -48,6 +48,9 @@ void HandleListNewsGroups(MessageHandler &mh, IDatabase *db)
         }
     }
 
+    //ng->clear();
+    delete ng;
+
     mh.sendCode(Protocol::ANS_END);
 }
 
@@ -129,6 +132,9 @@ void HandleListArticles(MessageHandler &mh, IDatabase *db)
                 mh.sendStringParameter(it->second.GetTitle());
             }
         }
+
+        //result->clear();
+        delete result;
     }
     else
     {
@@ -238,6 +244,8 @@ void HandleGetArticle(MessageHandler &mh, IDatabase *db)
     }
 
     mh.sendCode(Protocol::ANS_END);
+
+    delete article;
 }
 
 int DatabaseRAM::ID = 1;
@@ -263,7 +271,7 @@ int main(int argc, const char *argv[])
         if (dbOption.compare("-m") == 0 )
         {
             db = new DatabaseRAM();
-            cout << "RAM database created" << endl;
+            //cout << "RAM database created" << endl;
         }
         else if (dbOption.compare("-db") == 0)
         {
@@ -359,14 +367,19 @@ int main(int argc, const char *argv[])
             catch (ConnectionClosedException &)
             {
                 server.deregisterConnection(conn);
-                delete conn;
                 cout << "Client closed connection" << endl;
+                delete conn;
             }
         }
         else
         {
             server.registerConnection(new Connection);
-            cout << "New client connects" << endl;
+            //cout << "New client connects" << endl;
         }
     }
+
+    cout << flush;
+    cerr << flush;
+
+    delete db;
 }

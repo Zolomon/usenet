@@ -17,7 +17,7 @@ public:
     MessageHandler(Connection *conn) : connection(conn) {};
     ~MessageHandler()
     {
-        delete connection;
+        //delete connection;
     }
 
     void sendCode(int code) const throw(ConnectionClosedException);
