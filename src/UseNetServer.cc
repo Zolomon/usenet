@@ -210,7 +210,7 @@ void HandleDeleteArticle(MessageHandler &mh, IDatabase *db)
 void HandleGetArticle(MessageHandler &mh, IDatabase *db)
 {
     int ngID = mh.recvIntParameter();
-    int aID = mh.recvIntParameter() - 1;
+    int aID = mh.recvIntParameter();
 
     int cmdEnd = mh.recvCode();
     if (cmdEnd != Protocol::COM_END)
