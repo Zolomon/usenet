@@ -128,7 +128,7 @@ void HandleListArticles(MessageHandler &mh, IDatabase *db)
         {
             if (!it->second.IsDeleted())
             {
-                mh.sendIntParameter(it->first);
+                mh.sendIntParameter(it->first + 1);
                 mh.sendStringParameter(it->second.GetTitle());
             }
         }
@@ -210,7 +210,7 @@ void HandleDeleteArticle(MessageHandler &mh, IDatabase *db)
 void HandleGetArticle(MessageHandler &mh, IDatabase *db)
 {
     int ngID = mh.recvIntParameter();
-    int aID = mh.recvIntParameter();
+    int aID = mh.recvIntParameter() - 1;
 
     int cmdEnd = mh.recvCode();
     if (cmdEnd != Protocol::COM_END)
@@ -248,8 +248,8 @@ void HandleGetArticle(MessageHandler &mh, IDatabase *db)
     delete article;
 }
 
-int DatabaseRAM::ID = 0;
-int NewsGroup::articleID = 0;
+int DatabaseRAM::ID = 1;
+int NewsGroup::articleID = 1;
 
 int main(int argc, const char *argv[])
 {

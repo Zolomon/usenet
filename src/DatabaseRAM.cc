@@ -23,7 +23,6 @@ MapNewsGroup *DatabaseRAM::ListNewsGroups()
 {
     MapNewsGroup *ng = new MapNewsGroup(newsgroups->begin(), newsgroups->end());
     return ng;
-    //return newsgroups;
 }
 
 bool DatabaseRAM::CreateNewsGroup(string name)
@@ -94,7 +93,7 @@ MapArticle *DatabaseRAM::ListArticles(int ngID)
     }
 
     cerr << "\tNewsGroup could not be found ..." << endl;
-    
+
     // If not found, return NULL-pointer...
     return 0;
 }
