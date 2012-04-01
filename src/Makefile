@@ -3,9 +3,9 @@
 # connection.o and server.o
 #
 
+PREFIX		= ..
 CXX		 	= g++
 CXXFLAGS	= -ggdb -Wall -W -Werror -pedantic-errors
-PREFIX		= ..
 CXXFLAGS	+= -Wmissing-braces -Wparentheses -Wno-long-long
 # The following option cannot be used since some of the socket
 # macros give warnings on "old-style-cast"
@@ -21,7 +21,7 @@ SRC	= $(wildcard *.cc)
 
 .PHONY: all clean cleaner
 
-all: libclientserver.a memserver client
+all: libclientserver.a libsqlite3.a memserver client
 	mkdir -p $(PREFIX)/bin
 	mv usenetserver $(PREFIX)/bin/
 	mv usenetclient $(PREFIX)/bin/
@@ -29,11 +29,11 @@ all: libclientserver.a memserver client
 memserver: libclientserver.a libsqlite3.a UseNetServer.o MessageHandler.o DatabaseRAM.o Article.o NewsGroup.o server.o DatabaseDB.o
 	$(CXX) $(CXXFLAGS)  UseNetServer.cc MessageHandler.cc DatabaseRAM.cc Article.cc NewsGroup.cc server.cc connection.cc DatabaseDB.cc -o usenetserver $(LDFLAGS) $(LDLIBS)
 
-sqlite3.o: sqlite/sqlite3.c sqlite/sqlite3.h
-	gcc -c -o sqlite3.o sqlite/sqlite3.c
-
 client: UseNetClient.o MessageHandler.o protocol.h connection.o
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(LDLIBS) -o usenetclient UseNetClient.cc MessageHandler.cc connection.cc
+
+sqlite3.o: sqlite/sqlite3.c sqlite/sqlite3.h
+	gcc -c -o sqlite3.o sqlite/sqlite3.c
 
 # Create the library; ranlib is for Darwin and maybe other systems.
 # Doesn't seem to do any damage on other systems.
